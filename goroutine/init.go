@@ -14,8 +14,8 @@ type (
 	}
 	goroutineManager struct {
 		*sync.Mutex
-		max     int64              // 最大协程数
-		current int64              // 当前正在运行的协程
+		max     uint64             // 最大协程数
+		current uint64             // 当前正在运行的协程
 		queue   chan (queueStruct) // 装载 当前/等待 执行的任务
 	}
 )
@@ -32,7 +32,10 @@ func init() {
 		go func(function func(*sync.WaitGroup) error, w *sync.WaitGroup) {
 			defer func() {
 				// 执行结束修改当前协程数信息 原子操作保证一致性
-				atomic.AddInt64(&manager.current, -1)
+				temp := int64(-1)
+				// 多一步绕过编译器....
+				dec := uint64(temp)
+				atomic.AddUint64(&manager.current, dec)
 				if err := recover(); err != nil {
 					// 记录任务错误 防止进程重启
 					fmt.Printf("recover(): %v\n", recover())
@@ -45,8 +48,9 @@ func init() {
 }
 
 // 设置最大协程数
-func SetGoroutineNumber(max int64) {
-	manager.max = max
+func SetGoroutineNumber(max uint64) {
+	// 防止动态修改造成竞态问题 改为原子操作
+	atomic.StoreUint64(&manager.max, max)
 }
 
 // 生成协程任务
@@ -57,7 +61,7 @@ func MakeTask(task func(*sync.WaitGroup) error, w *sync.WaitGroup) error {
 		return errors.New("当前协程数量已达限制")
 	}
 	// 更新当前协程数信息 原子操作保证一致性
-	atomic.AddInt64(&manager.current, 1)
+	atomic.AddUint64(&manager.current, 1)
 	// 任务写入通道
 	manager.queue <- queueStruct{
 		function:  task,
