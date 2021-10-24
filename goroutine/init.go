@@ -38,6 +38,8 @@ func init() {
 					// 多一步绕过编译器....
 					dec := uint64(temp)
 					atomic.AddUint64(&manager.current, dec)
+					// 等待组处理
+					w.Done()
 					if err := recover(); err != nil {
 						// 记录任务错误 防止进程重启
 						fmt.Printf("recover(): %v\n", recover())
