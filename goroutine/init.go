@@ -28,23 +28,27 @@ var (
 func init() {
 	// 初始化通道 默认缓冲1000
 	manager.queue = make(chan queueStruct, 1000)
-	for v := range manager.queue {
-		go func(function func(*sync.WaitGroup) error, w *sync.WaitGroup) {
-			defer func() {
-				// 执行结束修改当前协程数信息 原子操作保证一致性
-				temp := int64(-1)
-				// 多一步绕过编译器....
-				dec := uint64(temp)
-				atomic.AddUint64(&manager.current, dec)
-				if err := recover(); err != nil {
-					// 记录任务错误 防止进程重启
-					fmt.Printf("recover(): %v\n", recover())
-				}
-			}()
-			// running task
-			function(w)
-		}(v.function, v.waitGroup)
-	}
+	// 初始化任务消费者
+	go func() {
+		for v := range manager.queue {
+			go func(function func(*sync.WaitGroup) error, w *sync.WaitGroup) {
+				defer func() {
+					// 执行结束修改当前协程数信息 原子操作保证一致性
+					temp := int64(-1)
+					// 多一步绕过编译器....
+					dec := uint64(temp)
+					atomic.AddUint64(&manager.current, dec)
+					if err := recover(); err != nil {
+						// 记录任务错误 防止进程重启
+						fmt.Printf("recover(): %v\n", recover())
+					}
+				}()
+				// running task
+				function(w)
+			}(v.function, v.waitGroup)
+		}
+	}()
+
 }
 
 // 设置最大协程数
