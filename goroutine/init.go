@@ -13,7 +13,7 @@ type (
 		waitGroup *sync.WaitGroup
 	}
 	goroutineManager struct {
-		*sync.Mutex
+		sync.Mutex
 		max     uint64             // 最大协程数
 		current uint64             // 当前正在运行的协程
 		queue   chan (queueStruct) // 装载 当前/等待 执行的任务
