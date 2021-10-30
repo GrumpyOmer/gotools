@@ -9,7 +9,7 @@ import (
 
 type (
 	queueStruct struct {
-		function  func(*sync.WaitGroup) error
+		function  func(*sync.WaitGroup)
 		waitGroup *sync.WaitGroup
 	}
 	goroutineManager struct {
@@ -31,7 +31,7 @@ func init() {
 	// 初始化任务消费者
 	go func() {
 		for v := range manager.queue {
-			go func(function func(*sync.WaitGroup) error, w *sync.WaitGroup) {
+			go func(function func(*sync.WaitGroup), w *sync.WaitGroup) {
 				defer func() {
 					// 执行结束修改当前协程数信息 原子操作保证一致性
 					temp := int64(-1)
@@ -60,7 +60,7 @@ func SetGoroutineNumber(max uint64) {
 }
 
 // 生成协程任务
-func MakeTask(task func(*sync.WaitGroup) error, w *sync.WaitGroup) error {
+func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
 	if manager.current == manager.max {
