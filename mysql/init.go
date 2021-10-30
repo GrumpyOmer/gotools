@@ -12,7 +12,7 @@ import (
 )
 
 type (
-	connect struct {
+	client struct {
 		Master *gorm.DB
 		Slave  []*gorm.DB //支持多从库
 	}
@@ -41,13 +41,13 @@ type (
 
 var (
 	// 实例对象
-	db = connect{}
+	dbClient = client{}
 	// 配置对象
 	cf = config{}
 )
 
 // 主库对象
-func (c *connect) GetMaster() (*gorm.DB, error) {
+func (c *client) GetMaster() (*gorm.DB, error) {
 	var (
 		err error
 		db  *gorm.DB
@@ -65,12 +65,12 @@ func (c *connect) GetMaster() (*gorm.DB, error) {
 }
 
 // 从库对象
-func (c *connect) GetSlave() (*gorm.DB, error) {
+func (c *client) GetSlave() (*gorm.DB, error) {
 	var (
 		err error
 		db  *gorm.DB
 	)
-	if c.Slave != nil && len(c.Slave) != 0 {
+	if len(c.Slave) != 0 {
 		// 随机选择一个从库
 		// seed函数是用来创建随机数的种子,如果不执行该步骤创建的随机数是一样的，因为默认Go会使用一个固定常量值来作为随机种子。
 		rand.Seed(time.Now().UnixNano())
@@ -102,8 +102,8 @@ func ConfigInit(c []byte) error {
 }
 
 // 获取数据库连接实例
-func Connection() *connect {
-	return &db
+func Client() *client {
+	return &dbClient
 }
 
 // init db
