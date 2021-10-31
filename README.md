@@ -92,3 +92,4 @@
  }
 ```
 ##### 注意: 获取到的连接使用结束后需要应用层手动调用Close()方法放回连接池,不然会导致连接池内存泄漏
+##### 获取到连接后的cmd操作参考redigo文档: https://pkg.go.dev/github.com/gomodule/redigo/redis#hdr-Connections
