@@ -63,7 +63,8 @@ func SetGoroutineNumber(max uint64) {
 func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
-	if manager.current == manager.max {
+
+	if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
 		return errors.New("当前协程数量已达限制")
 	}
 	// 更新当前协程数信息 原子操作保证一致性
