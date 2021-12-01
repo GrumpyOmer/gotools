@@ -16,7 +16,8 @@ type (
 		sync.Mutex
 		max     uint64             // 最大协程数
 		current uint64             // 当前正在运行的协程
-		queue   chan (queueStruct) // 装载 当前/等待 执行的任务
+		queue   chan (queueStruct) // 执行的任务
+		waitQueue chan (queueStruct) // 等待执行的任务
 	}
 )
 
@@ -28,6 +29,8 @@ var (
 func init() {
 	// 初始化通道 默认缓冲1000
 	manager.queue = make(chan queueStruct, 1000)
+	// 初始化待消费通道 默认缓冲3000
+	manager.waitQueue = make(chan queueStruct, 3000)
 	// 初始化任务消费者
 	go func() {
 		for v := range manager.queue {
@@ -51,6 +54,35 @@ func init() {
 		}
 	}()
 
+	// 初始化待执行任务消费者
+	go func() {
+		for {
+			current := atomic.LoadUint64(&manager.current)
+			// 利用cas保证协程数量在控制范围内
+			if len(manager.waitQueue) > 0 &&
+				current < atomic.LoadUint64(&manager.max) &&
+				atomic.CompareAndSwapUint64(&manager.current, current, current+1) {
+				currentTask:=<-manager.waitQueue
+				go func(function func(*sync.WaitGroup), w *sync.WaitGroup) {
+					defer func() {
+						// 执行结束修改当前协程数信息 原子操作保证一致性
+						temp := int64(-1)
+						// 多一步绕过编译器....
+						dec := uint64(temp)
+						atomic.AddUint64(&manager.current, dec)
+						// 等待组处理
+						w.Done()
+						if err := recover(); err != nil {
+							// 记录任务错误 防止进程重启
+							fmt.Printf("recover(): %v\n", recover())
+						}
+					}()
+					// running task
+					function(w)
+				}(currentTask.function, currentTask.waitGroup)
+			}
+		}
+	}()
 }
 
 // 设置最大协程数
@@ -74,6 +106,31 @@ func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 		function:  task,
 		waitGroup: w,
 	}
+	return nil
+}
+
+// 批量生成协程任务
+func BatchMakeTask(tasks []func(*sync.WaitGroup), w *sync.WaitGroup) error {
+	manager.Mutex.Lock()
+	defer manager.Mutex.Unlock()
+	for _,v:= range tasks {
+		if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
+			// 当前协程已跑满 任务保存进执行待执行任务通道
+			manager.waitQueue <- queueStruct{
+				function:  v,
+				waitGroup: w,
+			}
+			continue
+		}
+		// 更新当前协程数信息 原子操作保证一致性
+		atomic.AddUint64(&manager.current, 1)
+		// 任务写入通道
+		manager.queue <- queueStruct{
+			function:  v,
+			waitGroup: w,
+		}
+	}
+
 	return nil
 }
 
