@@ -98,6 +98,9 @@ func SetGoroutineNumber(max uint64) error {
 
 // 生成协程任务
 func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
+	if w == nil {
+		return errors.New("请求参数有误, 等待组空指针")
+	}
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
 
@@ -116,6 +119,9 @@ func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 
 // 批量生成协程任务
 func BatchMakeTask(tasks []func(*sync.WaitGroup), w *sync.WaitGroup) error {
+	if w == nil {
+		return errors.New("请求参数有误, 等待组空指针")
+	}
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
 	for _,v:= range tasks {
