@@ -86,9 +86,14 @@ func init() {
 }
 
 // 设置最大协程数
-func SetGoroutineNumber(max uint64) {
+func SetGoroutineNumber(max uint64) error {
 	// 防止动态修改造成竞态问题 改为原子操作
+	// 防止要修改的最大协程数量小于当前已有协程数量
+	if max < atomic.LoadUint64(&manager.current) {
+		return errors.New("非法值：此刻已有协程数大于当前设置协程数")
+	}
 	atomic.StoreUint64(&manager.max, max)
+	return nil
 }
 
 // 生成协程任务
