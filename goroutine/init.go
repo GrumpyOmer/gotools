@@ -29,8 +29,8 @@ var (
 func init() {
 	// 初始化通道 默认缓冲1000
 	manager.queue = make(chan queueStruct, 1000)
-	// 初始化待消费通道 默认缓冲3000
-	manager.waitQueue = make(chan queueStruct, 3000)
+	// 初始化待消费通道 默认缓冲100000
+	manager.waitQueue = make(chan queueStruct, 100000)
 	// 初始化任务消费者
 	go func() {
 		for v := range manager.queue {
@@ -103,6 +103,7 @@ func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 	}
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
+
 
 	if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
 		return errors.New("当前协程数量已达限制")
