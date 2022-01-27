@@ -6,15 +6,15 @@
 ##### 项目初始化时可以顺便引入包初始化,这将会初始化协程任务的消费者,就像这样: 
     _ "github.com/GrumpyOmer/gotools/goroutine"
 ##### 首先在使用之前我们需要根据实际情况去设置协程的最大可控数量,通过调用SetGoroutineNumber(uint64)方法
-##### 之后使用的话需要再向上抽象一层,调用 MakeTask(func(*sync.WaitGroup) , *sync.WaitGroup)方法, 我们需要将在应用层封装的协程的上下文 func(*sync.WaitGroup) 函数,以及管控协程的等待组两个参数传递进来, 该方法会响应一个error来告知应用层任务是否成功丢进协程池(任务执行是异步的), 外部可以自己用等待组的Wait()方法去等待协程执行结束.
-##### 执行完成后,需要通过自行获取上面传入的协程上下文 func(*sync.WaitGroup) 函数内部的error来做到业务层面的判断,来达到业务层面预期的效果, 使用例子如下:
+##### 之后使用的话需要再向上抽象一层,调用 MakeTask(func() , *sync.WaitGroup)方法, 我们需要将在应用层封装的协程的上下文 func() 函数,以及管控协程的等待组两个参数传递进来, 该方法会响应一个error来告知应用层任务是否成功丢进协程池(任务执行是异步的), 外部必须自己用等待组的Wait()方法去等待协程执行结束.
+##### 执行完成后,需要通过自行获取上面传入的协程上下文 func() 函数内部的error来做到业务层面的判断,来达到业务层面预期的效果, 使用例子如下:
 ```
     var (
         a int
         b int
         err error
         w = sync.WaitGroup{}
-        tempFunc = func(*sync.WaitGroup) {
+        tempFunc = func() {
             b = a+1
             //自行传入错误和捕捉错误
             err = errors.New("this is a demo")

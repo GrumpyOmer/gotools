@@ -9,7 +9,7 @@ import (
 
 type (
 	queueStruct struct {
-		function  func(*sync.WaitGroup)
+		function  func()
 		waitGroup *sync.WaitGroup
 	}
 	goroutineManager struct {
@@ -34,7 +34,7 @@ func init() {
 	// 初始化任务消费者
 	go func() {
 		for v := range manager.queue {
-			go func(function func(*sync.WaitGroup), w *sync.WaitGroup) {
+			go func(function func(), w *sync.WaitGroup) {
 				defer func() {
 					// 执行结束修改当前协程数信息 原子操作保证一致性
 					temp := int64(-1)
@@ -44,12 +44,12 @@ func init() {
 					// 等待组处理
 					w.Done()
 					if err := recover(); err != nil {
-						// 记录任务错误 防止进程重启
+						// 记录任务错误 防止进程重启 「可在此接入错误上报 待实现」
 						fmt.Printf("recover(): %v\n", recover())
 					}
 				}()
 				// running task
-				function(w)
+				function()
 			}(v.function, v.waitGroup)
 		}
 	}()
@@ -63,7 +63,7 @@ func init() {
 				current < atomic.LoadUint64(&manager.max) &&
 				atomic.CompareAndSwapUint64(&manager.current, current, current+1) {
 				currentTask:=<-manager.waitQueue
-				go func(function func(*sync.WaitGroup), w *sync.WaitGroup) {
+				go func(function func(), w *sync.WaitGroup) {
 					defer func() {
 						// 执行结束修改当前协程数信息 原子操作保证一致性
 						temp := int64(-1)
@@ -73,12 +73,12 @@ func init() {
 						// 等待组处理
 						w.Done()
 						if err := recover(); err != nil {
-							// 记录任务错误 防止进程重启
+							// 记录任务错误 防止进程重启 「可在此接入错误上报 待实现」
 							fmt.Printf("recover(): %v\n", recover())
 						}
 					}()
 					// running task
-					function(w)
+					function()
 				}(currentTask.function, currentTask.waitGroup)
 			}
 		}
@@ -97,7 +97,7 @@ func SetGoroutineNumber(max uint64) error {
 }
 
 // 生成协程任务
-func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
+func MakeTask(task func(), w *sync.WaitGroup) error {
 	if w == nil {
 		return errors.New("请求参数有误, 等待组空指针")
 	}
@@ -119,7 +119,7 @@ func MakeTask(task func(*sync.WaitGroup), w *sync.WaitGroup) error {
 }
 
 // 批量生成协程任务
-func BatchMakeTask(tasks []func(*sync.WaitGroup), w *sync.WaitGroup) error {
+func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 	if w == nil {
 		return errors.New("请求参数有误, 等待组空指针")
 	}
