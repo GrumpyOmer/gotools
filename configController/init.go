@@ -7,61 +7,92 @@ import (
 	"io/ioutil"
 	"os"
 	"sync"
+	"time"
 )
 
 type (
-	configStruct struct {
+	clientStruct struct {
 		xmlConfig    map[string]string
 		jsonConfig   map[string]string
 		sync.RWMutex // 保证读取修改配置内存安全性
 	}
+
+	configStruct struct {
+		name    string
+		modTime int64
+	}
 )
 
 var (
-	Client configStruct
-	//默认配置文件目录
-	pubPath              = "./config"
-	xmlConfigName        = "config.xml"
-	jsonConfigName       = "config.json"
-	l                    sync.Mutex
-	UpdatePubPath        = make(chan struct{}, 1)
-	UpdateXmlConfigName  = make(chan struct{})
-	UpdateJsonConfigName = make(chan struct{})
+	Client                   clientStruct
+	pubPath                  = "./config" //默认配置文件目录
+	xmlConfig                = configStruct{name: "config.xml"}
+	jsonConfig               = configStruct{name: "config.json"}
+	l                        sync.Mutex
+	UpdatePubPathChan        = make(chan struct{}, 1)
+	UpdateXmlConfigNameChan  = make(chan struct{})
+	UpdateJsonConfigNameChan = make(chan struct{})
 )
 
 // 初始化配置信息
 func init() {
 	// 初始化
-	UpdatePubPath <- struct{}{}
+	UpdatePubPathChan <- struct{}{}
+	// 文件监听事件
 	go func() {
 		for {
 			select {
 			// 公共配置目录修改事件
-			case <-UpdatePubPath:
+			case <-UpdatePubPathChan:
 				l.Lock()
 				defer l.Unlock()
 				if !Exists(pubPath) {
 					continue
 				}
-				if Exists(pubPath + "/" + xmlConfigName) {
-					Client.initXmlConfig(pubPath + "/" + xmlConfigName)
+				if Exists(pubPath + "/" + xmlConfig.name) {
+					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
 				}
-				if Exists(pubPath + "/" + jsonConfigName) {
-					Client.initJsonConfig(pubPath + "/" + jsonConfigName)
+				if Exists(pubPath + "/" + jsonConfig.name) {
+					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
 				}
 				// json配置文件修改事件
-			case <-UpdateJsonConfigName:
+			case <-UpdateJsonConfigNameChan:
 				l.Lock()
 				defer l.Unlock()
-				if Exists(pubPath + "/" + jsonConfigName) {
-					Client.initJsonConfig(pubPath + "/" + jsonConfigName)
+				if Exists(pubPath + "/" + jsonConfig.name) {
+					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
 				}
 				// xml配置文件修改事件
-			case <-UpdateXmlConfigName:
+			case <-UpdateXmlConfigNameChan:
 				l.Lock()
 				defer l.Unlock()
-				if Exists(pubPath + "/" + jsonConfigName) {
-					Client.initJsonConfig(pubPath + "/" + jsonConfigName)
+				if Exists(pubPath + "/" + xmlConfig.name) {
+					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+				}
+			}
+		}
+	}()
+
+	// 内容监听定时事件
+	go func() {
+		ticker := time.NewTicker(30 * time.Second) //定时检测配置文件是否改动
+		defer ticker.Stop()
+		for {
+			<-ticker.C
+			l.Lock()
+			defer l.Unlock()
+			// 检查文件是否更新过 （第一次初始化必须重新加载一次）
+			if xmlInfo, err := os.Stat(pubPath + "/" + xmlConfig.name); err == nil {
+				if xmlInfo.ModTime().Unix() != xmlConfig.modTime {
+					// 重新根据配置文件生成配置信息
+					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+				}
+			}
+
+			if jsonInfo, err := os.Stat(pubPath + "/" + jsonConfig.name); err == nil {
+				if jsonInfo.ModTime().Unix() != jsonConfig.modTime {
+					// 重新根据配置文件生成配置信息
+					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
 				}
 			}
 		}
@@ -74,7 +105,7 @@ func SetPubDir(path string) {
 	defer func() {
 		l.Unlock()
 		// 触发更新配置信息事件
-		UpdatePubPath <- struct{}{}
+		UpdatePubPathChan <- struct{}{}
 	}()
 	pubPath = path
 }
@@ -85,9 +116,9 @@ func SetXmlConfigName(configName string) {
 	defer func() {
 		l.Unlock()
 		// 触发更新配置信息事件
-		UpdateXmlConfigName <- struct{}{}
+		UpdateXmlConfigNameChan <- struct{}{}
 	}()
-	xmlConfigName = configName
+	xmlConfig.name = configName
 }
 
 // 自定义json文件名
@@ -96,9 +127,9 @@ func SetJsonConfigName(configName string) {
 	defer func() {
 		l.Unlock()
 		// 触发更新配置信息事件
-		UpdateJsonConfigName <- struct{}{}
+		UpdateJsonConfigNameChan <- struct{}{}
 	}()
-	jsonConfigName = configName
+	jsonConfig.name = configName
 }
 
 // 判断所给路径文件/文件夹是否存在
@@ -113,7 +144,7 @@ func Exists(path string) bool {
 	return true
 }
 
-func (c *configStruct) initXmlConfig(path string) error {
+func (c *clientStruct) initXmlConfig(path string) error {
 	c.Lock()
 	defer c.Unlock()
 	buf, err := ioutil.ReadFile(path)
@@ -132,11 +163,10 @@ func GetXmlField(field string) string {
 	return Client.xmlConfig[field]
 }
 
-func (c *configStruct) initJsonConfig(path string) error {
+func (c *clientStruct) initJsonConfig(path string) error {
 	c.Lock()
 	defer c.Unlock()
 	buf, err := ioutil.ReadFile(path)
-
 	if err != nil {
 		return errors.New("load json conf failed: " + err.Error())
 	}
