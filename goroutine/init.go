@@ -14,9 +14,9 @@ type (
 	}
 	goroutineManager struct {
 		sync.Mutex
-		max     uint64             // 最大协程数
-		current uint64             // 当前正在运行的协程
-		queue   chan (queueStruct) // 执行的任务
+		max       uint64             // 最大协程数
+		current   uint64             // 当前正在运行的协程
+		queue     chan (queueStruct) // 执行的任务
 		waitQueue chan (queueStruct) // 等待执行的任务
 	}
 )
@@ -62,7 +62,7 @@ func init() {
 			if len(manager.waitQueue) > 0 &&
 				current < atomic.LoadUint64(&manager.max) &&
 				atomic.CompareAndSwapUint64(&manager.current, current, current+1) {
-				currentTask:=<-manager.waitQueue
+				currentTask := <-manager.waitQueue
 				go func(function func(), w *sync.WaitGroup) {
 					defer func() {
 						// 执行结束修改当前协程数信息 原子操作保证一致性
@@ -104,7 +104,6 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
 
-
 	if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
 		return errors.New("当前协程数量已达限制")
 	}
@@ -125,7 +124,7 @@ func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 	}
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
-	for _,v:= range tasks {
+	for _, v := range tasks {
 		if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
 			// 当前协程已跑满 任务保存进执行待执行任务通道
 			manager.waitQueue <- queueStruct{
