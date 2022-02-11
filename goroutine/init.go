@@ -1,4 +1,4 @@
-package Goroutine
+package goroutine
 
 import (
 	"errors"
