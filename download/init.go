@@ -1,12 +1,12 @@
 package download
 
 import (
-"io"
-"net/http"
-"os"
-"strconv"
-"sync"
-"sync/atomic"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
+	"sync"
+	"sync/atomic"
 )
 
 var (
@@ -14,11 +14,11 @@ var (
 )
 
 type WriteCounter struct {
-	Total uint64	//文件总大小
-	Current uint64	//当前已成功下载大小
-	Progress int32	//当前下载进度（百分比）
-	Err	error	//错误原因
-	Success	bool	//是否上传成功
+	Total    uint64 //文件总大小
+	Current  uint64 //当前已成功下载大小
+	Progress int32  //当前下载进度（百分比）
+	Err      error  //错误原因
+	Success  bool   //是否上传成功
 }
 
 func (wc *WriteCounter) Write(p []byte) (int, error) {
@@ -41,7 +41,7 @@ func (wc *WriteCounter) FetchTotal() uint64 {
 }
 
 func DownloadFile(filepath string, url string) {
-	var(
+	var (
 		err error
 	)
 	counter := &WriteCounter{}
@@ -60,7 +60,7 @@ func DownloadFile(filepath string, url string) {
 		return
 	}
 	defer resp.Body.Close()
-	tmpTotal,_:= strconv.Atoi(resp.Header.Get("Content-Length"))
+	tmpTotal, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
 	// 获取文件大小
 	counter.Total = uint64(tmpTotal)
 	if _, err = io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
