@@ -84,6 +84,7 @@ func init() {
 			// 检查文件是否更新过 （第一次初始化必须重新加载一次）
 			if xmlInfo, err := os.Stat(pubPath + "/" + xmlConfig.name); err == nil {
 				if xmlInfo.ModTime().Unix() != xmlConfig.modTime {
+					xmlConfig.modTime = xmlInfo.ModTime().Unix()
 					// 重新根据配置文件生成配置信息
 					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
 				}
@@ -91,6 +92,7 @@ func init() {
 
 			if jsonInfo, err := os.Stat(pubPath + "/" + jsonConfig.name); err == nil {
 				if jsonInfo.ModTime().Unix() != jsonConfig.modTime {
+					jsonConfig.modTime = jsonInfo.ModTime().Unix()
 					// 重新根据配置文件生成配置信息
 					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
 				}
