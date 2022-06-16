@@ -63,23 +63,7 @@ func init() {
 				current < atomic.LoadUint64(&manager.max) &&
 				atomic.CompareAndSwapUint64(&manager.current, current, current+1) {
 				currentTask := <-manager.waitQueue
-				go func(function func(), w *sync.WaitGroup) {
-					defer func() {
-						// 执行结束修改当前协程数信息 原子操作保证一致性
-						temp := int64(-1)
-						// 多一步绕过编译器....
-						dec := uint64(temp)
-						atomic.AddUint64(&manager.current, dec)
-						// 等待组处理
-						w.Done()
-						if err := recover(); err != nil {
-							// 记录任务错误 防止进程重启 「可在此接入错误上报 待实现」
-							fmt.Printf("recover(): %v\n", recover())
-						}
-					}()
-					// running task
-					function()
-				}(currentTask.function, currentTask.waitGroup)
+				manager.queue <- currentTask
 			}
 		}
 	}()
@@ -105,7 +89,11 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 	defer manager.Mutex.Unlock()
 
 	if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
-		return errors.New("当前协程数量已达限制")
+		// 当前协程已跑满 任务保存进执行待执行任务通道
+		manager.waitQueue <- queueStruct{
+			function:  task,
+			waitGroup: w,
+		}
 	}
 	// 更新当前协程数信息 原子操作保证一致性
 	atomic.AddUint64(&manager.current, 1)
