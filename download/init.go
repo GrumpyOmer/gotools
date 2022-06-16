@@ -36,7 +36,7 @@ func (wc *WriteCounter) FetchCurrent() uint64 {
 }
 
 func (wc *WriteCounter) FetchTotal() uint64 {
-	return wc.Total
+	return atomic.LoadUint64(&wc.Total)
 }
 
 func (wc *WriteCounter) DownloadComplete() bool {
