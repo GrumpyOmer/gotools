@@ -39,10 +39,18 @@ func (wc *WriteCounter) FetchTotal() uint64 {
 	return atomic.LoadUint64(&wc.Total)
 }
 
-func (wc *WriteCounter) DownloadComplete() bool {
-	return wc.Success
+func (wc *WriteCounter) DownloadRes() (bool, error) {
+	return wc.Success, wc.Err
 }
 
+func (wc *WriteCounter) initProperty() {
+	wc.InUse = true
+	wc.Success = false
+	wc.Total = 0
+	wc.Current = 0
+	wc.Progress = 0
+	wc.Err = nil
+}
 func (wc *WriteCounter) DownloadFile(filepath string, url string) error {
 	// 异步下载文件 为了保障安全性 一个wc对象同一时刻只能下载一个文件
 	wc.Lock()
@@ -51,8 +59,7 @@ func (wc *WriteCounter) DownloadFile(filepath string, url string) error {
 		return errors.New("当前wc对象正在使用")
 	}
 	// 开始占用wc
-	wc.InUse = true
-	wc.Success = false
+	wc.initProperty()
 	go func(string, string) {
 		var (
 			err         error
