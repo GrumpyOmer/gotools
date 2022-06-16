@@ -51,6 +51,7 @@ func (wc *WriteCounter) initProperty() {
 	wc.Progress = 0
 	wc.Err = nil
 }
+
 func (wc *WriteCounter) DownloadFile(filepath string, url string) error {
 	// 异步下载文件 为了保障安全性 一个wc对象同一时刻只能下载一个文件
 	wc.Lock()
