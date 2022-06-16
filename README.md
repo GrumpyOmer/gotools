@@ -149,6 +149,8 @@
     wc.FetchCurrent() uint64 
     获取文件总大小 （Bytes）
     wc.FetchTotal() uint64
+    获取文件是否下载完成 （true/false）
+    wc.DownloadComplete() bool
 ```
 ### 更新记录
 #### v1.0.7 

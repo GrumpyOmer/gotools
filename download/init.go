@@ -39,6 +39,10 @@ func (wc *WriteCounter) FetchTotal() uint64 {
 	return wc.Total
 }
 
+func (wc *WriteCounter) DownloadComplete() bool {
+	return wc.Success
+}
+
 func (wc *WriteCounter) DownloadFile(filepath string, url string) error {
 	// 异步下载文件 为了保障安全性 一个wc对象同一时刻只能下载一个文件
 	wc.Lock()
@@ -48,6 +52,7 @@ func (wc *WriteCounter) DownloadFile(filepath string, url string) error {
 	}
 	// 开始占用wc
 	wc.InUse = true
+	wc.Success = false
 	go func(string, string) {
 		var (
 			err         error
