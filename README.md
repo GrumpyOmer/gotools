@@ -108,6 +108,21 @@
 ##### 注意: 获取到的连接使用结束后需要应用层手动调用Close()方法放回连接池，不然会导致连接池内存泄漏
 ##### 获取到连接后的cmd操作参考redigo文档：https://pkg.go.dev/github.com/gomodule/redigo/redis#hdr-Connections
 
+# <- es ->
+### *基于 olivere/elastic 封装的一套es组件*
+##### 使用逻辑方式与上面的mysql/redis大致相同(初始化，es不需要区分主从服务，只需要配置里把集群机器的ip:port都配置好)，以下给出对应的json格式：
+```json
+ {
+    "address": [
+      "http://127.0.0.1:9200",
+      "http://127.0.0.2:9200",
+      "http://127.0.0.3:9200"
+    ]
+ }
+```
+##### 获取到连接后的cmd操作参考文档：https://pkg.go.dev/github.com/olivere/elastic#section-readme
+
+
 # <- configController ->
 ### *实现本地配置文件热更新*
 ##### 支持本地配置文件的热更新（修改配置文件目录或配置文件内容）
@@ -168,3 +183,5 @@
 
 # v1.0.12
 ##### fix: 文件下载重复使用wc属性未重置bug修复
+# v1.0.13
+##### feat: 新增es组件
