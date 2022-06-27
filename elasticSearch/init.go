@@ -18,7 +18,7 @@ type (
 
 var (
 	// 实例对象
-	esClient = &elastic.Client{}
+	esClient *elastic.Client
 	// 配置对象
 	cf = config{}
 )
