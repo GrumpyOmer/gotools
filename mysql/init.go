@@ -1,4 +1,4 @@
-package gorm
+package mysql
 
 import (
 	"database/sql"

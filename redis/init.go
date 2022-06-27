@@ -24,6 +24,7 @@ type (
 	redisConfig struct {
 		Host    string `json:"host"`
 		Port    string `json:"port"`
+		Auth 	string `json:"auth"`
 		User    string `json:"user"` // redis 6.0支持用户名登录 兼容一下
 		Pass    string `json:"pass"`
 		Db      int    `json:"db"`
@@ -58,7 +59,7 @@ func Client() *client {
 }
 
 // 获取redis连接 / master
-func (c *client) GetMaster() (*redis.Conn, error) {
+func (c *client) GetMaster() (redis.Conn, error) {
 	var (
 		conn redis.Conn
 	)
@@ -70,13 +71,13 @@ func (c *client) GetMaster() (*redis.Conn, error) {
 	conn = c.Master.Get()
 	if conn.Err() != nil {
 		// 连接不可用
-		return nil, c.Master.Get().Err()
+		return nil, conn.Err()
 	}
-	return &conn, nil
+	return conn, nil
 }
 
 // 获取redis连接 / slave
-func (c *client) GetSlave() (*redis.Conn, error) {
+func (c *client) GetSlave() (redis.Conn, error) {
 	var (
 		conn redis.Conn
 	)
@@ -88,7 +89,7 @@ func (c *client) GetSlave() (*redis.Conn, error) {
 		if conn.Err() != nil {
 			return nil, conn.Err()
 		}
-		return &conn, nil
+		return conn, nil
 	} else {
 		// get config init connection
 		if len(cf.Slave) != 0 {
@@ -99,10 +100,10 @@ func (c *client) GetSlave() (*redis.Conn, error) {
 			if conn.Err() != nil {
 				return nil, conn.Err()
 			}
-			return &conn, nil
+			return conn, nil
 		}
 	}
-	return &conn, errors.New("无可用从库!!")
+	return conn, errors.New("无可用从库!!")
 }
 
 //初始化连接池
@@ -124,6 +125,12 @@ func initPool(cf redisConfig) *redis.Pool {
 			pool, err := redis.Dial(cf.Network, cf.Host+":"+cf.Port, DialOptionSlice...)
 			if err != nil {
 				return pool, err
+			}
+			if cf.Auth != "" {
+				_, err = pool.Do("Auth", cf.Auth)
+				if err != nil {
+					return pool, err
+				}
 			}
 			return pool, err
 		},

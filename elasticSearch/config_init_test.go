@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-type (
-	aa struct {
-		v int
-	}
-)
-
 func TestConfigInit(t *testing.T) {
 	var (
 		err error
