@@ -2,10 +2,12 @@ package configController
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"errors"
+	"fmt"
+	"github.com/sbabiv/xml2map"
 	"io/ioutil"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -44,31 +46,34 @@ func init() {
 			select {
 			// 公共配置目录修改事件
 			case <-UpdatePubPathChan:
-				l.Lock()
-				defer l.Unlock()
-				if !Exists(pubPath) {
-					continue
-				}
-				if Exists(pubPath + "/" + xmlConfig.name) {
-					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
-				}
-				if Exists(pubPath + "/" + jsonConfig.name) {
-					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
-				}
+				func() {
+					l.Lock()
+					defer l.Unlock()
+					if Exists(pubPath + "/" + xmlConfig.name) {
+						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+					}
+					if Exists(pubPath + "/" + jsonConfig.name) {
+						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+					}
+				}()
 				// json配置文件修改事件
 			case <-UpdateJsonConfigNameChan:
-				l.Lock()
-				defer l.Unlock()
-				if Exists(pubPath + "/" + jsonConfig.name) {
-					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
-				}
+				func() {
+					l.Lock()
+					defer l.Unlock()
+					if Exists(pubPath + "/" + jsonConfig.name) {
+						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+					}
+				}()
 				// xml配置文件修改事件
 			case <-UpdateXmlConfigNameChan:
-				l.Lock()
-				defer l.Unlock()
-				if Exists(pubPath + "/" + xmlConfig.name) {
-					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
-				}
+				func() {
+					l.Lock()
+					defer l.Unlock()
+					if Exists(pubPath + "/" + xmlConfig.name) {
+						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+					}
+				}()
 			}
 		}
 	}()
@@ -78,25 +83,28 @@ func init() {
 		ticker := time.NewTicker(30 * time.Second) //定时检测配置文件是否改动
 		defer ticker.Stop()
 		for {
-			<-ticker.C
-			l.Lock()
-			defer l.Unlock()
-			// 检查文件是否更新过 （第一次初始化必须重新加载一次）
-			if xmlInfo, err := os.Stat(pubPath + "/" + xmlConfig.name); err == nil {
-				if xmlInfo.ModTime().Unix() != xmlConfig.modTime {
-					xmlConfig.modTime = xmlInfo.ModTime().Unix()
-					// 重新根据配置文件生成配置信息
-					Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+			func() {
+				fmt.Println("定期配置更新检查....")
+				<-ticker.C
+				l.Lock()
+				defer l.Unlock()
+				// 检查文件是否更新过 （第一次初始化必须重新加载一次）
+				if xmlInfo, err := os.Stat(pubPath + "/" + xmlConfig.name); err == nil {
+					if xmlInfo.ModTime().Unix() != xmlConfig.modTime {
+						xmlConfig.modTime = xmlInfo.ModTime().Unix()
+						// 重新根据配置文件生成配置信息
+						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+					}
 				}
-			}
 
-			if jsonInfo, err := os.Stat(pubPath + "/" + jsonConfig.name); err == nil {
-				if jsonInfo.ModTime().Unix() != jsonConfig.modTime {
-					jsonConfig.modTime = jsonInfo.ModTime().Unix()
-					// 重新根据配置文件生成配置信息
-					Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+				if jsonInfo, err := os.Stat(pubPath + "/" + jsonConfig.name); err == nil {
+					if jsonInfo.ModTime().Unix() != jsonConfig.modTime {
+						jsonConfig.modTime = jsonInfo.ModTime().Unix()
+						// 重新根据配置文件生成配置信息
+						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+					}
 				}
-			}
+			}()
 		}
 	}()
 }
@@ -153,8 +161,16 @@ func (c *clientStruct) initXmlConfig(path string) error {
 	if err != nil {
 		return errors.New("load xml conf failed: " + err.Error())
 	}
-	if err := xml.Unmarshal(buf, &c.xmlConfig); err != nil {
+	decoder := xml2map.NewDecoder(strings.NewReader(string(buf)))
+	res, err := decoder.Decode()
+	if err != nil {
 		return err
+	}
+	tmp := res["root"].(map[string]interface{})
+	//init map
+	c.xmlConfig = make(map[string]string)
+	for k, v := range tmp {
+		c.xmlConfig[k] = v.(string)
 	}
 	return nil
 }
