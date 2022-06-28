@@ -34,8 +34,18 @@
         }
     )
     w.Add(2)
-    goroutine.MakeTask(tempFunc1, &w)
-    goroutine.MakeTask(tempFunc2, &w)
+    if test1:= goroutine.MakeTask(tempFunc1, &w); test1 != nil {
+        // 下发失败
+        w.Done()
+        fmt.Println(test1)
+    }
+    
+    if test2:= goroutine.MakeTask(tempFunc2, &w); test2 != nil {
+        // 下发失败
+        w.Done()
+        fmt.Println(test2)
+    }
+    
     w.Wait()
     fmt.Println(a)
     fmt.Println(b)
