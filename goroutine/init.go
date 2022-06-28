@@ -87,13 +87,16 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 	}
 	manager.Mutex.Lock()
 	defer manager.Mutex.Unlock()
-
+	if atomic.LoadUint64(&manager.max) == 0 {
+		return errors.New("please set goroutine num by SetGoroutineNumber(uint64)")
+	}
 	if atomic.LoadUint64(&manager.current) == atomic.LoadUint64(&manager.max) {
 		// 当前协程已跑满 任务保存进执行待执行任务通道
 		manager.waitQueue <- queueStruct{
 			function:  task,
 			waitGroup: w,
 		}
+		return nil
 	}
 	// 更新当前协程数信息 原子操作保证一致性
 	atomic.AddUint64(&manager.current, 1)
