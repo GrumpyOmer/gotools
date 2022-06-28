@@ -1,4 +1,5 @@
 # gotools
+[![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### 注：一些在使用golang期间封装的提升效率的小工具
 ## 简介
 # <- goroutine ->
@@ -33,8 +34,18 @@
         }
     )
     w.Add(2)
-    goroutine.MakeTask(tempFunc1, &w)
-    goroutine.MakeTask(tempFunc2, &w)
+    if test1:= goroutine.MakeTask(tempFunc1, &w); test1 != nil {
+        // 下发失败
+        w.Done()
+        fmt.Println(test1)
+    }
+    
+    if test2:= goroutine.MakeTask(tempFunc2, &w); test2 != nil {
+        // 下发失败
+        w.Done()
+        fmt.Println(test2)
+    }
+    
     w.Wait()
     fmt.Println(a)
     fmt.Println(b)
