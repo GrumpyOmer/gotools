@@ -159,28 +159,26 @@
     SetJsonConfigName(configName string)
 ```
 配置文件内容格式如下: 
-```json
-    //json
+```
+    [json] :
     {
       "test1": "1",
       "test2": "2"
     }
-```
-```xml
-    //xml
+    
+    [xml] :
     <?xml version="1.0" encoding="UTF-8" ?>
-    <root>  // xml配置文件必须以root作为根元素，否则无法解析
+    <root>              //xml配置文件必须以root作为根元素，否则无法解析
         <test1>1</test1>
         <test2>2</test2>
     </root>
-```
-```go
-    // 以上成功序列化后为以下map
+    
+    以上成功序列化后为以下map
     map[string]string{
         "test1": "1",
         "test2": "2",
     }
-````
+```
 # <- download ->
 ### *文件下载组件*
 ##### 文件下载组件，支持实时下载进度查询
