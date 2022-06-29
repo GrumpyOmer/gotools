@@ -2,13 +2,15 @@ package configController
 
 import (
 	"testing"
+	"time"
 )
 
 func TestConfigInit(t *testing.T) {
-	t.Log(GetJsonField("test1"))
 	SetPubDir(".")
-	SetJsonConfigName("json_test.json")
 	SetXmlConfigName("xml_test.xml")
-	t.Log(GetJsonField("test1"))
+	time.Sleep(time.Second)
+	t.Log(GetXmlField("test1"))
+	SetXmlConfigName("xml_test1.xml")
+	time.Sleep(time.Second)
 	t.Log(GetXmlField("test1"))
 }

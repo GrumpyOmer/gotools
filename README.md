@@ -188,7 +188,7 @@
 ##### 文件下载组件，支持实时下载进度查询
 ```
     实时下载进度查询,内部用协程异步处理
-    wc:= &WriteCounter{}
+    wc:= NewWc()
     wc.DownloadFile(filepath string, url string) error
     filepath: 保存路径+文件名
     url: 远程图片url
@@ -202,8 +202,8 @@
     wc.FetchCurrent() uint64 
     获取文件总大小 （Bytes）
     wc.FetchTotal() uint64
-    获取文件是否下载完成 （true/false）
-    wc.DownloadComplete() bool
+    获取文件是否下载成功 （bool, error message）
+    wc.DownloadRes() (bool, error)
 ```
 # 更新记录
 # v1.0.7 
