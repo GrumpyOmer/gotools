@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"sync"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -15,6 +16,8 @@ type (
 	client struct {
 		Master *gorm.DB
 		Slave  []*gorm.DB //支持多从库
+		m      sync.Once  //初始化master配置
+		s      sync.Once  //初始化slave配置
 	}
 	// 连接池相关配置
 	connPool struct {
@@ -50,43 +53,60 @@ var (
 func (c *client) GetMaster() (*gorm.DB, error) {
 	var (
 		err error
-		db  *gorm.DB
 	)
+
+	// init once
+	c.m.Do(func() {
+		// get config init connection
+		if db, error := initDB(cf.Master); error != nil {
+			err = error
+		} else {
+			c.Master = db
+		}
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
 	if c.Master != nil {
 		return c.Master, nil
-	} else {
-		// get config init connection
-		if db, err = initDB(cf.Master); err != nil {
-			return nil, err
-		}
-		c.Master = db
-		return c.Master, nil
 	}
+
+	return nil, errors.New("无可用主库!!")
 }
 
 // 从库对象
 func (c *client) GetSlave() (*gorm.DB, error) {
 	var (
 		err error
-		db  *gorm.DB
 	)
+
+	// init once
+	c.s.Do(func() {
+		// get config init connection
+		if len(cf.Slave) != 0 {
+			for _, v := range cf.Slave {
+				if db, error := initDB(v); error != nil {
+					err = error
+				} else {
+					c.Slave = append(c.Slave, db)
+				}
+			}
+		}
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
 	if len(c.Slave) != 0 {
 		// 随机选择一个从库
 		// seed函数是用来创建随机数的种子,如果不执行该步骤创建的随机数是一样的，因为默认Go会使用一个固定常量值来作为随机种子。
 		rand.Seed(time.Now().UnixNano())
 		return c.Slave[rand.Intn(len(c.Slave))], nil
-	} else {
-		// get config init connection
-		if len(cf.Slave) != 0 {
-			for _, v := range cf.Slave {
-				if db, err = initDB(v); err != nil {
-					return nil, err
-				}
-				c.Slave = append(c.Slave, db)
-			}
-			return c.Slave[0], nil
-		}
 	}
+
 	return nil, errors.New("无可用从库!!")
 }
 

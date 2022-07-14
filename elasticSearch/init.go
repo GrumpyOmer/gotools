@@ -3,10 +3,12 @@ package elasticSearch
 import (
 	"encoding/json"
 	"github.com/olivere/elastic/v7"
+	"github.com/pkg/errors"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -14,11 +16,15 @@ type (
 	config struct {
 		Address []string `json:"address"`
 	}
+	client struct {
+		es *elastic.Client
+		sync.Once
+	}
 )
 
 var (
 	// 实例对象
-	esClient *elastic.Client
+	esClient = client{}
 	// 配置对象
 	cf = config{}
 )
@@ -37,11 +43,21 @@ func ConfigInit(c []byte) error {
 // get instance
 func GetESClient() (*elastic.Client, error) {
 	var err error
-	if esClient == nil {
-		// init
-		esClient, err = initClient()
+
+	// init
+	esClient.Do(func() {
+		esClient.es, err = initClient()
+	})
+
+	if err != nil {
+		return nil, err
 	}
-	return esClient, err
+
+	if esClient.es == nil {
+		return nil, errors.New("无可用es实例!!")
+	}
+	
+	return esClient.es, nil
 }
 
 // init client
