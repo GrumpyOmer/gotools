@@ -2,6 +2,10 @@
 [![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### 注：一些在使用golang期间封装的提升效率的小工具
 ## 简介
+## Installation
+```
+    go get github.com/GrumpyOmer/gotools@latest
+```
 # <- goroutine ->
 ### *基于任务分发的协程池*
 ##### 引入时先进行包初始化，这将会初始化协程任务的消费线程
