@@ -231,3 +231,5 @@
 ##### fix: 修复一些小问题
 # v1.0.17
 ##### optimize: 优化download组件使用方法
+# v1.0.18
+##### optimize: 引入sync.once优化（redis, mysql, es）组件初始化
