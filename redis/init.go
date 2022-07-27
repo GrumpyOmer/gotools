@@ -45,7 +45,7 @@ var (
 	redisClient = client{}
 )
 
-// redis配置信息初始化
+// ConfigInit redis配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
 	err := json.Unmarshal(c, &cf)
@@ -56,12 +56,12 @@ func ConfigInit(c []byte) error {
 	return nil
 }
 
-// 获取数据库连接实例
+// Client 获取数据库连接实例
 func Client() *client {
 	return &redisClient
 }
 
-// 获取redis连接 / master
+// GetMaster 获取redis连接 / master
 func (c *client) GetMaster() (redis.Conn, error) {
 	var (
 		conn redis.Conn
@@ -82,7 +82,7 @@ func (c *client) GetMaster() (redis.Conn, error) {
 	return conn, nil
 }
 
-// 获取redis连接 / slave
+// GetSlave 获取redis连接 / slave
 func (c *client) GetSlave() (redis.Conn, error) {
 	var (
 		conn redis.Conn
@@ -112,7 +112,7 @@ func (c *client) GetSlave() (redis.Conn, error) {
 	return conn, errors.New("无可用从库!!")
 }
 
-//初始化连接池
+// 初始化连接池
 func initPool(cf redisConfig) *redis.Pool {
 	var (
 		DialOptionSlice []redis.DialOption

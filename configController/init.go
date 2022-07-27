@@ -109,7 +109,7 @@ func init() {
 	}()
 }
 
-// 自定义配置目录
+// SetPubDir 自定义配置目录
 func SetPubDir(path string) {
 	l.Lock()
 	defer func() {
@@ -120,7 +120,7 @@ func SetPubDir(path string) {
 	pubPath = path
 }
 
-// 自定义xml文件名
+// SetXmlConfigName 自定义xml文件名
 func SetXmlConfigName(configName string) {
 	l.Lock()
 	defer func() {
@@ -131,7 +131,7 @@ func SetXmlConfigName(configName string) {
 	xmlConfig.name = configName
 }
 
-// 自定义json文件名
+// SetJsonConfigName 自定义json文件名
 func SetJsonConfigName(configName string) {
 	l.Lock()
 	defer func() {
@@ -142,7 +142,7 @@ func SetJsonConfigName(configName string) {
 	jsonConfig.name = configName
 }
 
-// 判断所给路径文件/文件夹是否存在
+// Exists 判断所给路径文件/文件夹是否存在
 func Exists(path string) bool {
 	_, err := os.Stat(path) //os.Stat获取文件信息
 	if err != nil {

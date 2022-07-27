@@ -29,7 +29,7 @@ var (
 	cf = config{}
 )
 
-// es配置信息初始化
+// ConfigInit es配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
 	err := json.Unmarshal(c, &cf)
@@ -40,7 +40,7 @@ func ConfigInit(c []byte) error {
 	return nil
 }
 
-// get instance
+// GetESClient 获取客户端实例
 func GetESClient() (*elastic.Client, error) {
 	var err error
 
@@ -56,11 +56,11 @@ func GetESClient() (*elastic.Client, error) {
 	if esClient.es == nil {
 		return nil, errors.New("无可用es实例!!")
 	}
-	
+
 	return esClient.es, nil
 }
 
-// init client
+// 初始化实例
 func initClient() (*elastic.Client, error) {
 	httpClient := &http.Client{}
 	httpClient.Transport = &http.Transport{

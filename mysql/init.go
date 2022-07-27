@@ -49,7 +49,7 @@ var (
 	cf = config{}
 )
 
-// 主库对象
+// GetMaster 主库对象
 func (c *client) GetMaster() (*gorm.DB, error) {
 	var (
 		err error
@@ -76,7 +76,7 @@ func (c *client) GetMaster() (*gorm.DB, error) {
 	return nil, errors.New("无可用主库!!")
 }
 
-// 从库对象
+// GetSlave 从库对象
 func (c *client) GetSlave() (*gorm.DB, error) {
 	var (
 		err error
@@ -110,7 +110,7 @@ func (c *client) GetSlave() (*gorm.DB, error) {
 	return nil, errors.New("无可用从库!!")
 }
 
-// 数据库配置信息初始化
+// ConfigInit 数据库配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
 	err := json.Unmarshal(c, &cf)
@@ -121,7 +121,7 @@ func ConfigInit(c []byte) error {
 	return nil
 }
 
-// 获取数据库连接实例
+// Client 获取数据库连接实例
 func Client() *client {
 	return &dbClient
 }

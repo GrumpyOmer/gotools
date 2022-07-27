@@ -69,7 +69,7 @@ func init() {
 	}()
 }
 
-// 设置最大协程数
+// SetGoroutineNumber 设置最大协程数
 func SetGoroutineNumber(max uint64) error {
 	// 防止动态修改造成竞态问题 改为原子操作
 	// 防止要修改的最大协程数量小于当前已有协程数量
@@ -80,7 +80,7 @@ func SetGoroutineNumber(max uint64) error {
 	return nil
 }
 
-// 生成协程任务
+// MakeTask 生成协程任务
 func MakeTask(task func(), w *sync.WaitGroup) error {
 	if w == nil {
 		return errors.New("请求参数有误, 等待组空指针")
@@ -108,7 +108,7 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 	return nil
 }
 
-// 批量生成协程任务
+// BatchMakeTask 批量生成协程任务
 func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 	if w == nil {
 		return errors.New("请求参数有误, 等待组空指针")
@@ -136,7 +136,7 @@ func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 	return nil
 }
 
-//查看当前堆积任务
+// SearchCurTask 查看当前堆积任务
 func SearchCurTask() int {
 	return len(manager.queue)
 }
