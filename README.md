@@ -1,4 +1,5 @@
 # gotools
+##### Language: 🇨🇳 | [🇺🇸](./README-english.md)
 [![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### 注：一些在使用golang期间封装的提升效率的小工具
 ## 简介
@@ -225,15 +226,21 @@
 
 # v1.0.12
 ##### fix: 文件下载重复使用wc属性未重置bug修复
+
 # v1.0.13
 ##### feat: 新增es组件
+
 # v1.0.14
 ##### fix: 修复es组件初始化失败bug
+
 # v1.0.15
 ##### fix: 修复一些小问题
+
 # v1.0.16
 ##### fix: 修复一些小问题
+
 # v1.0.17
 ##### optimize: 优化download组件使用方法
+
 # v1.0.18
 ##### optimize: 引入sync.once优化（redis, mysql, es）组件初始化
