@@ -1,5 +1,5 @@
 # gotools
-##### Language: 🇨🇳 | [🇺🇸](./README-english.md)
+##### Language: 🇨🇳 | [🇺🇸](./README-EN.md)
 [![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### 注：一些在使用golang期间封装的提升效率的小工具
 ## 简介
