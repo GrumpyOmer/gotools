@@ -210,37 +210,6 @@
     获取文件是否下载成功 （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
-# 更新记录
-# v1.0.7 
-##### feat: 协程池新增批量生成任务方法 (BatchMakeTask)
-##### 这种方法有一种好处就是，在当前协程数量已经饱和的情况下，批量生成任务中溢出来的任务不会直接向调用方抛出错误，而是通过一个新增的通道保存下来，然后与其他下发的任务一起竞争协程资源
-
-# v1.0.10
-##### feat: 新增热更新配置文件组件
-##### 目前版本支持两种配置文件格式（json, xml），默认指定配置文件位于程序启动目录下的config目录下的config.xml和config.json，可通过SetPubDir()，SetXmlConfigName()，SetJsonConfigName()方法自定义它们
-##### （比如配置文件位于./app/config/jsonConfig.json，可通过分别调用SetPubDir("./app/config")以及SetJsonConfigName("jsonConfig.json")，则可以使插件自己找新配置文件信息并后续维护它们，xml配置方式雷同，使用SetXmlConfigName()方法）
-
-# v1.0.11
-##### feat: 文件下载（实时获取下载信息）
-##### pref: 协程池优化
-
-# v1.0.12
-##### fix: 文件下载重复使用wc属性未重置bug修复
-
-# v1.0.13
-##### feat: 新增es组件
-
-# v1.0.14
-##### fix: 修复es组件初始化失败bug
-
-# v1.0.15
-##### fix: 修复一些小问题
-
-# v1.0.16
-##### fix: 修复一些小问题
-
-# v1.0.17
-##### optimize: 优化download组件使用方法
-
-# v1.0.18
-##### optimize: 引入sync.once优化（redis, mysql, es）组件初始化
+# tag更新记录
+# v1.0.1
+##### feat: 功能发布

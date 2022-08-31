@@ -212,37 +212,6 @@ The following methods can be used to observe the progress of the image file in r
     Check whether the file is downloaded successfully （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
-# update record
-# v1.0.7 
-##### feat: Added batch generation task method to coroutine pool (BatchMakeTask)
-##### One advantage of this approach is that, when the current number of coroutines is saturated, the overflow task in the batch generation task does not directly throw an error to the caller, but is saved through a new channel and then competes with other distributed tasks for coroutine resources
-
-# v1.0.10
-##### feat: Added the hot update configuration file component
-##### The current version supports two configuration file formats (JSON, XML). By default, config.xml and config.json are specified in the config directory of the program startup directory. You can use SetPubDir(), SetXmlConfigName(), The SetJsonConfigName() method customizes them
-##### (such as the configuration file is located in the/app/config/jsonConfig json, can be respectively called SetPubDir (". / app/config ") and SetJsonConfigName (" jsonConfig. Json "), You can have the plug-in find the new configuration file information and maintain it later, using the SetXmlConfigName() method.
-
-# v1.0.11
-##### feat: File download (real-time access to download information)
-##### pref: Optimization of coroutine pooling
-
-# v1.0.12
-##### fix: File downloads repeatedly using WC property not reset Bug fix
-
-# v1.0.13
-##### feat: Add ES component
-
-# v1.0.14
-##### fix: Fix ES component initialization failure bug
-
-# v1.0.15
-##### fix: Fix some minor problems
-
-# v1.0.16
-##### fix: Fix some minor problems
-
-# v1.0.17
-##### optimize: Optimize the Download component usage
-
-# v1.0.18
-##### optimize: Introduce sync.once optimization (Redis, mysql, ES) component initialization
+# tag update record
+# v1.0.1
+##### feat: feature release
