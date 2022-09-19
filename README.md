@@ -210,6 +210,24 @@
     获取文件是否下载成功 （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
+# <- logCenter ->
+### *日志组件*
+##### 以详细的格式记录下代码里的日志信息 
+##### 目前版本为了自己方便使用，日志只有一种以写文件的方式保存在启动文件目录下的log目录下（根据日期划分文件）,后续会把组件接入进来（es, mysql等）
+```
+    {
+        "Content":"omer test1",                                                     // 日志内容
+        "Location":"D:/server/gotools/logCenter/config_init_test.go:9",             // 日志打印位置(文件/行)  
+        "FunctionName":"github.com/GrumpyOmer/gotools/logCenter.TestConfigInit",    // 日志打印函数名
+        "LogTime":"2022-09-19 18:24:05.5941501 +0800 CST m=+0.006999901"            // 日志打印时间
+    }
+```
+使用非常简单，只需要调用Add(string)函数把日志内容传递进去，会有协程异步的去记录这些日志，不必担心写日志影响业务性能
+```
+    Add("omer test1")
+```
 # tag更新记录
 # v1.0.1
 ##### feat: 功能发布
+# v1.0.2
+##### feat: add logCenter

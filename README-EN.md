@@ -212,6 +212,39 @@ The following methods can be used to observe the progress of the image file in r
     Check whether the file is downloaded successfully （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
+# <- logCenter ->
+
+### *Log component*
+
+##### Records the log information in code in a detailed format
+
+##### For the convenience of the current version, there is only one way to save logs as written files in the log directory of the startup file directory (files are divided according to the date). Components will be added in later (Es, Mysql...).
+
+```
+
+{
+
+"Content":"omer test1",                                                     // Indicates the log Content
+
+"Location" : "D: / server/gotools/logCenter/config_init_test go: 9",        // log print position (file/line)
+
+"FunctionName" : "github.com/GrumpyOmer/gotools/logCenter.TestConfigInit",  // log print function name
+
+"LogTime":"2022-09-19 18:24:05.5941501 +0800 CST m=+0.006999901"            // Indicates the log printing time
+
+}
+
+```
+
+It is very simple to use, just need to call Add(string) function to pass the log content, the coroutine will be asynchronous to record these logs, do not worry about the impact of writing logs on service performance
+
+```
+
+Add("omer test1")
+
+```
 # tag update record
 # v1.0.1
 ##### feat: feature release
+# v1.0.2
+##### feat: add logCenter
