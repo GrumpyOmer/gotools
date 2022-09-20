@@ -1,0 +1,3 @@
+{"Content":"omer test1","Location":"D:/server/gotools/logCenter/config_init_test.go:9","FunctionName":"github.com/GrumpyOmer/gotools/logCenter.TestConfigInit","LogTime":"2022-09-20 10:59:58.6245322 +0800 CST m=+0.010669301"}
+{"Content":"omer test1","Location":"D:/server/gotools/logCenter/config_init_test.go:9","FunctionName":"github.com/GrumpyOmer/gotools/logCenter.TestConfigInit","LogTime":"2022-09-20 11:00:32.0253751 +0800 CST m=+0.007277301"}
+{"Content":"omer test1","Location":"D:/server/gotools/logCenter/config_init_test.go:9","FunctionName":"github.com/GrumpyOmer/gotools/logCenter.TestConfigInit","LogTime":"2022-09-20 11:02:06.1368494 +0800 CST m=+0.008786001"}
