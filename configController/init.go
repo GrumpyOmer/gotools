@@ -50,10 +50,14 @@ func init() {
 					l.Lock()
 					defer l.Unlock()
 					if Exists(pubPath + "/" + xmlConfig.name) {
-						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+						if err := Client.initXmlConfig(pubPath + "/" + xmlConfig.name); err != nil {
+							fmt.Println("init xml err: ", err.Error())
+						}
 					}
 					if Exists(pubPath + "/" + jsonConfig.name) {
-						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+						if err := Client.initJsonConfig(pubPath + "/" + jsonConfig.name); err != nil {
+							fmt.Println("init json err: ", err.Error())
+						}
 					}
 				}()
 				// json配置文件修改事件
@@ -62,7 +66,9 @@ func init() {
 					l.Lock()
 					defer l.Unlock()
 					if Exists(pubPath + "/" + jsonConfig.name) {
-						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+						if err := Client.initJsonConfig(pubPath + "/" + jsonConfig.name); err != nil {
+							fmt.Println("init json err: ", err.Error())
+						}
 					}
 				}()
 				// xml配置文件修改事件
@@ -71,7 +77,9 @@ func init() {
 					l.Lock()
 					defer l.Unlock()
 					if Exists(pubPath + "/" + xmlConfig.name) {
-						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+						if err := Client.initXmlConfig(pubPath + "/" + xmlConfig.name); err != nil {
+							fmt.Println("init xml err: ", err.Error())
+						}
 					}
 				}()
 			}
@@ -93,7 +101,9 @@ func init() {
 					if xmlInfo.ModTime().Unix() != xmlConfig.modTime {
 						xmlConfig.modTime = xmlInfo.ModTime().Unix()
 						// 重新根据配置文件生成配置信息
-						Client.initXmlConfig(pubPath + "/" + xmlConfig.name)
+						if err := Client.initXmlConfig(pubPath + "/" + xmlConfig.name); err != nil {
+							fmt.Println("init xml err: ", err.Error())
+						}
 					}
 				}
 
@@ -101,7 +111,9 @@ func init() {
 					if jsonInfo.ModTime().Unix() != jsonConfig.modTime {
 						jsonConfig.modTime = jsonInfo.ModTime().Unix()
 						// 重新根据配置文件生成配置信息
-						Client.initJsonConfig(pubPath + "/" + jsonConfig.name)
+						if err := Client.initJsonConfig(pubPath + "/" + jsonConfig.name); err != nil {
+							fmt.Println("init json err: ", err.Error())
+						}
 					}
 				}
 			}()

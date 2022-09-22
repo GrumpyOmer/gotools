@@ -14,10 +14,10 @@ type (
 	}
 	goroutineManager struct {
 		sync.Mutex
-		max       uint64             // 最大协程数
-		current   uint64             // 当前正在运行的协程
-		queue     chan (queueStruct) // 执行的任务
-		waitQueue chan (queueStruct) // 等待执行的任务
+		max       uint64           // 最大协程数
+		current   uint64           // 当前正在运行的协程
+		queue     chan queueStruct // 执行的任务
+		waitQueue chan queueStruct // 等待执行的任务
 	}
 )
 
