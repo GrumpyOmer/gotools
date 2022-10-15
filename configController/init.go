@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/sbabiv/xml2map"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,7 @@ type (
 	clientStruct struct {
 		xmlConfig    map[string]string
 		jsonConfig   map[string]string
+		envConfig   map[string]string
 		sync.RWMutex // 保证读取修改配置内存安全性
 	}
 
@@ -30,10 +32,12 @@ var (
 	pubPath                  = "./config" //默认配置文件目录
 	xmlConfig                = configStruct{name: "config.xml"}
 	jsonConfig               = configStruct{name: "config.json"}
+	envConfig               = configStruct{name: ".env"}
 	l                        sync.Mutex
 	UpdatePubPathChan        = make(chan struct{}, 1)
 	UpdateXmlConfigNameChan  = make(chan struct{})
 	UpdateJsonConfigNameChan = make(chan struct{})
+	UpdateEnvConfigNameChan = make(chan struct{})
 )
 
 // 初始化配置信息
@@ -59,6 +63,11 @@ func init() {
 							fmt.Println("init json err: ", err.Error())
 						}
 					}
+					if Exists(pubPath + "/" + envConfig.name) {
+						if err := Client.initEnvConfig(pubPath + "/" + envConfig.name); err != nil {
+							fmt.Println("init .env err: ", err.Error())
+						}
+					}
 				}()
 				// json配置文件修改事件
 			case <-UpdateJsonConfigNameChan:
@@ -79,6 +88,17 @@ func init() {
 					if Exists(pubPath + "/" + xmlConfig.name) {
 						if err := Client.initXmlConfig(pubPath + "/" + xmlConfig.name); err != nil {
 							fmt.Println("init xml err: ", err.Error())
+						}
+					}
+				}()
+				// .env配置文件修改事件
+			case <-UpdateEnvConfigNameChan:
+				func() {
+					l.Lock()
+					defer l.Unlock()
+					if Exists(pubPath + "/" + envConfig.name) {
+						if err := Client.initEnvConfig(pubPath + "/" + envConfig.name); err != nil {
+							fmt.Println("init .env err: ", err.Error())
 						}
 					}
 				}()
@@ -113,6 +133,16 @@ func init() {
 						// 重新根据配置文件生成配置信息
 						if err := Client.initJsonConfig(pubPath + "/" + jsonConfig.name); err != nil {
 							fmt.Println("init json err: ", err.Error())
+						}
+					}
+				}
+
+				if envInfo, err := os.Stat(pubPath + "/" + envConfig.name); err == nil {
+					if envInfo.ModTime().Unix() != envConfig.modTime {
+						envConfig.modTime = envInfo.ModTime().Unix()
+						// 重新根据配置文件生成配置信息
+						if err := Client.initEnvConfig(pubPath + "/" + envConfig.name); err != nil {
+							fmt.Println("init env err: ", err.Error())
 						}
 					}
 				}
@@ -152,6 +182,17 @@ func SetJsonConfigName(configName string) {
 		UpdateJsonConfigNameChan <- struct{}{}
 	}()
 	jsonConfig.name = configName
+}
+
+// SetEnvConfigName 自定义.env文件名
+func SetEnvConfigName(configName string) {
+	l.Lock()
+	defer func() {
+		l.Unlock()
+		// 触发更新配置信息事件
+		UpdateEnvConfigNameChan <- struct{}{}
+	}()
+	envConfig.name = configName
 }
 
 // Exists 判断所给路径文件/文件夹是否存在
@@ -210,4 +251,21 @@ func GetJsonField(field string) string {
 	Client.RLock()
 	defer Client.RUnlock()
 	return Client.jsonConfig[field]
+}
+
+func (c *clientStruct) initEnvConfig(path string) error {
+	c.Lock()
+	defer c.Unlock()
+	tmpMap, err := godotenv.Read(path)
+	if err != nil {
+		return errors.New("load .env conf failed: " + err.Error())
+	}
+	c.envConfig = tmpMap
+	return nil
+}
+
+func GetEnvField(field string) string {
+	Client.RLock()
+	defer Client.RUnlock()
+	return Client.envConfig[field]
 }

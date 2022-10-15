@@ -149,10 +149,11 @@
 ```
     _ "github.com/GrumpyOmer/gotools/configController"
 ```
-目前只支持json和xml两种配置文件格式,初始化后可通过对应的方法获取
+目前支持json/xml/.env三种配置文件格式,初始化后可通过对应的方法获取
 ```
     GetJsonField(field string)
     GetXmlField(field string)
+    GetEnvField(field string)
 ```
 配置的热更新除了支持手动修改配置文件内容，还支持在程序动态运行过程中调用以下方法修改配置文件名称或目录来触发更新
 ```
@@ -162,6 +163,8 @@
     SetXmlConfigName(configName string)
     // 自定义json文件名
     SetJsonConfigName(configName string)
+    // 自定义.env文件名
+    SetEnvConfigName(configName string)
 ```
 配置文件内容格式如下: 
 ```
@@ -182,6 +185,11 @@
     </root>
     `
     
+    [.env] :
+    `
+    test1="1"
+    test2="2"
+    `
     以上成功序列化后为以下map
     map[string]string{
         "test1": "1",
@@ -231,3 +239,5 @@
 ##### feat: 功能发布
 # v1.0.2
 ##### feat: add logCenter
+# v1.0.3
+##### feat: 配置的热更新新增.env类型文件
