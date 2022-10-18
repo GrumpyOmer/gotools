@@ -7,7 +7,17 @@
 ```
     go get github.com/GrumpyOmer/gotools@latest
 ```
-# <- goroutine ->
+## Module List
+「  
+&ensp;&ensp;&ensp;[goroutine](#goroutine)  
+&ensp;&ensp;&ensp;[mysql](#mysql)  
+&ensp;&ensp;&ensp;[redis](#redis)  
+&ensp;&ensp;&ensp;[es](#es)  
+&ensp;&ensp;&ensp;[configController](#configController)  
+&ensp;&ensp;&ensp;[download](#download)  
+&ensp;&ensp;&ensp;[logCenter](#logCenter)  
+」
+# <span id="goroutine"><- goroutine -></span>
 ### *基于任务分发的协程池*
 ##### 引入时先进行包初始化，这将会初始化协程任务的消费线程
 ```
@@ -59,7 +69,7 @@
     fmt.Println(err2)
 ```
 
-# <- mysql ->
+# <span id="mysql"><- mysql -></span>
 ### *基于gorm封装的一套mysql组件*
 ##### 首先在使用之前，需要通过ConfigInit([]byte)方法把db的配置以基于json字符串转换后的[]byte格式传递进来，转换前的json格式如下 (支持一主多从，配置自定义根据自身需求主库从库都能留空)：
 ```json
@@ -91,7 +101,7 @@
 ##### 实例的初始化会在主从库各自第一次调用GetMaster()和GetSlave()时进行，初始化成功后连接池相关配置也会建立，后续再调用以上两个方法就会直接从连接池种获取对应实例的长连接以供应用层使用了
 
 
-# <- redis ->
+# <span id="redis"><- redis -></span>
 ### *基于redigo封装的一套redis组件*
 ##### 使用逻辑方式与上面的mysql大致相同(初始化，获取主从实例方法都一样)，也是基于redigo实现的一套连接池，只不过json配置不同，以下给出对应的json格式：
 ```json
@@ -127,7 +137,7 @@
 ##### 注意: 获取到的连接使用结束后需要应用层手动调用Close()方法放回连接池，不然会导致连接池内存泄漏
 ##### 获取到连接后的cmd操作参考redigo文档：https://pkg.go.dev/github.com/gomodule/redigo/redis#hdr-Connections
 
-# <- es ->
+# <span id="es"><- es -></span>
 ### *基于 olivere/elastic 封装的一套es组件*
 ##### 使用逻辑方式与上面的mysql/redis大致相同(初始化，es不需要区分主从服务，只需要配置里把集群机器的ip:port都配置好)，以下给出对应的json格式：
 ```json
@@ -142,8 +152,8 @@
 ##### 获取到连接后的cmd操作参考文档：https://pkg.go.dev/github.com/olivere/elastic#section-readme
 
 
-# <- configController ->
-### *实现本地配置文件热更新*
+# <span id="configController"><- configController -></span>
+### *多种方式实现本地配置文件热更新*
 ##### 支持本地配置文件的热更新（修改配置文件目录或配置文件内容）
 ##### 项目初始化时必须引入包初始化，这将会初始化配置任务的监听者（实现热更新），就像这样：
 ```
@@ -196,7 +206,7 @@
         "test2": "2",
     }
 ```
-# <- download ->
+# <span id="download"><- download -></span>
 ### *文件下载组件*
 ##### 文件下载组件，支持实时下载进度查询
 ```
@@ -218,7 +228,7 @@
     获取文件是否下载成功 （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
-# <- logCenter ->
+# <span id="logCenter"><- logCenter -></span>
 ### *日志组件*
 ##### 以详细的格式记录下代码里的日志信息 
 ##### 目前版本为了自己方便使用，日志只有一种以写文件的方式保存在启动文件目录下的log目录下（根据日期划分文件）,后续会把组件接入进来（es, mysql等）
