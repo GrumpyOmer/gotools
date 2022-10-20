@@ -7,7 +7,17 @@
 ```
     go get github.com/GrumpyOmer/gotools@latest
 ```
-# <- goroutine ->
+## Module List
+「  
+&ensp;&ensp;&ensp;[goroutine](#goroutine)  
+&ensp;&ensp;&ensp;[mysql](#mysql)  
+&ensp;&ensp;&ensp;[redis](#redis)  
+&ensp;&ensp;&ensp;[es](#es)  
+&ensp;&ensp;&ensp;[configController](#configController)  
+&ensp;&ensp;&ensp;[download](#download)  
+&ensp;&ensp;&ensp;[logCenter](#logCenter)  
+」
+# <span id="goroutine"><- goroutine -></span>
 ### *Coroutine pooling based on task distribution*
 ##### When introduced, the first line is initialized, which will initialize the consumer thread of the coroutine task
 ```
@@ -61,7 +71,7 @@
     fmt.Println(err2)
 ```
 
-# <- mysql ->
+# <span id="mysql"><- mysql -></span>
 ### *A set of mysql components packaged based on GORM*
 ##### Before using the DB configuration, you need to use the ConfigInit([]byte) method to transfer the DB configuration to the converted []byte format based on the JSON string. The converted JSON format is as follows (one master and multiple slaves are supported, and the master and slave libraries can be left blank according to the configuration requirements) :
 ```json
@@ -93,7 +103,7 @@
 ##### The instance is initialized when the master and slave libraries call GetMaster() and GetSlave() for the first time. After the initialization is successful, the connection pool configuration is established. Subsequent calls of the two methods will directly obtain the long connection of the corresponding instance from the connection pool for use by the application layer
 
 
-# <- redis ->
+# <span id="redis"><- redis -></span>
 ### *A set of Redis components packaged based on Redigo*
 ##### Using the same logic as mysql above (initialization, master/slave instance method is the same), also based on Redigo implementation of a set of connection pooling, but the JSON configuration is different, the corresponding JSON format is given below:
 ```json
@@ -129,7 +139,7 @@
 ##### Note: After the connection is used, the application layer needs to manually call the Close() method to put it back into the connection pool. Otherwise, the connection pool memory will leak
 ##### Access to the connection of CMD operation reference redigo document: https://pkg.go.dev/github.com/gomodule/redigo/redis#hdr-Connections
 
-# <- es ->
+# <span id="es"><- es -></span>
 ### *A suite of ES components based on Olivere/Elastic packaging*
 ##### The logical method is roughly the same as mysql/redis above (initialization, ES does not need to distinguish between master and slave services, only need to configure the cluster machine IP :port). The corresponding JSON format is given as follows:
 ```json
@@ -144,26 +154,29 @@
 ##### Access to the connection of CMD operating reference documentation: https://pkg.go.dev/github.com/olivere/elastic#section-readme for the connection of CMD operation reference documentation
 
 
-# <- configController ->
+# <span id="configController"><- configController -></span>
 ### *Implement hot update of the local configuration file*
 ##### Support hot update of local configuration files (modify configuration file directory or configuration file contents)
 ##### The package initialization must be introduced when the project is initialized, which will initialize the listener of the configuration task (implementing the hot update), like this:
 ```
     _ "github.com/GrumpyOmer/gotools/configController"
 ```
-Currently, only JSON and XML configuration files are supported. After initialization, you can obtain the configuration file in the corresponding method
+Currently, only JSON, XML and .env configuration files are supported. After initialization, you can obtain the configuration file in the corresponding method
 ```
     GetJsonField(field string)
     GetXmlField(field string)
+    GetEnvField(field string)
 ```
 In addition to manually modifying the content of the configuration file, the hot update of the configuration file can also trigger the update by calling the following methods to change the configuration file name or directory during the dynamic running of the program
 ```
-    // 自定义配置目录
+    // Customize the configuration directory
     SetPubDir(path string)
-    // 自定义xml文件名
+    // Customize the xml file name
     SetXmlConfigName(configName string)
-    // 自定义json文件名
+    // Customize the json file name
     SetJsonConfigName(configName string)
+    // Customize the .env file name
+    SetEnvConfigName(configName string)
 ```
 The format of the configuration file is as follows:
 ```
@@ -184,13 +197,18 @@ The format of the configuration file is as follows:
     </root>
     `
     
+    [.env] :
+    `
+    test1="1"
+    test2="2"
+    `
     The above was successfully serialized to the following map
     map[string]string{
         "test1": "1",
         "test2": "2",
     }
 ```
-# <- download ->
+# <span id="download"><- download -></span>
 ### *File Download Component*
 ##### File download component, supports real-time download progress query
 ```
@@ -212,8 +230,7 @@ The following methods can be used to observe the progress of the image file in r
     Check whether the file is downloaded successfully （bool, error message）
     wc.DownloadRes() (bool, error)
 ```
-# <- logCenter ->
-
+# <span id="logCenter"><- logCenter -></span>
 ### *Log component*
 
 ##### Records the log information in code in a detailed format
@@ -248,3 +265,5 @@ Add("omer test1")
 ##### feat: feature release
 # v1.0.2
 ##### feat: add logCenter
+# v1.0.3
+##### feat: support .env file by configController  
