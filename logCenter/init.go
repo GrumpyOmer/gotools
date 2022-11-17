@@ -53,14 +53,20 @@ func init() {
 					fmt.Println(err1.Error())
 					continue
 				}
-				defer f.Close()
+				defer func() {
+					if err1 = f.Close(); err1 != nil {
+						fmt.Println("关闭文件失败，err：" + err1.Error())
+					}
+				}()
 				_, err1 = f.WriteString(string(str) + "\n") //写入文件(字符串)
 				if err1 != nil {
 					fmt.Println(err1.Error())
 					continue
 				}
 				// 刷入磁盘
-				f.Sync()
+				if err1 = f.Sync(); err1 != nil {
+					fmt.Println("刷入磁盘失败，err：" + err1.Error())
+				}
 			}
 		}()
 	}
