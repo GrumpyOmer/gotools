@@ -2,6 +2,7 @@
 ##### Language: 🇨🇳 | [🇺🇸](./README-EN.md)
 [![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### 注：一些在使用golang期间封装的提升效率的小工具
+#### （推荐使用golang 1.16及以上版本，部分依赖有版本限制）
 ## 简介
 ## Installation
 ```

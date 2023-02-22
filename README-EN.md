@@ -2,6 +2,7 @@
 ##### Language: [🇨🇳](./README.md) | 🇺🇸
 [![OSCS Status](https://www.oscs1024.com/platform/badge/GrumpyOmer/gotools.svg?size=small)](https://www.oscs1024.com/project/GrumpyOmer/gotools?ref=badge_small)
 #### Note: Some productivity boosting gadgets are packaged during Golang use
+#### （golang 1.16 and above is recommended, partly depending on the version limitation）
 ## introduction
 ## Installation
 ```
