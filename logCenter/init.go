@@ -47,7 +47,7 @@ func init() {
 					}
 					f, err1 = os.Create(filename) //创建文件
 				} else {
-					f, err1 = os.OpenFile(filename, os.O_APPEND, 0666) //打开文件
+					f, err1 = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
 				}
 				if err1 != nil {
 					fmt.Println(err1.Error())
