@@ -33,40 +33,42 @@ func init() {
 		go func() {
 			for {
 				data := <-channel
-				str, _ := json.Marshal(data)
-				fileName := time.Now().Format("20060102")
-				var (
-					filename = "./log/" + fileName + ".text"
-					f        *os.File
-					err1     error
-				)
-				if _, err := os.Stat(filename); os.IsNotExist(err) {
-					if err1 = os.MkdirAll("./log", 0777); err1 != nil {
-						fmt.Println(err1.Error())
-						continue
+				func() {
+					str, _ := json.Marshal(data)
+					fileName := time.Now().Format("20060102")
+					var (
+						filename = "./log/" + fileName + ".text"
+						f        *os.File
+						err1     error
+					)
+					if _, err := os.Stat(filename); os.IsNotExist(err) {
+						if err1 = os.MkdirAll("./log", 0777); err1 != nil {
+							fmt.Println(err1.Error())
+							return
+						}
+						f, err1 = os.Create(filename) //创建文件
+					} else {
+						f, err1 = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
 					}
-					f, err1 = os.Create(filename) //创建文件
-				} else {
-					f, err1 = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
-				}
-				if err1 != nil {
-					fmt.Println(err1.Error())
-					continue
-				}
-				defer func() {
-					if err1 = f.Close(); err1 != nil {
-						fmt.Println("关闭文件失败，err：" + err1.Error())
+					if err1 != nil {
+						fmt.Println(err1.Error())
+						return
+					}
+					defer func() {
+						if err1 = f.Close(); err1 != nil {
+							fmt.Println("关闭文件失败，err：" + err1.Error())
+						}
+					}()
+					_, err1 = f.WriteString(string(str) + "\n") //写入文件(字符串)
+					if err1 != nil {
+						fmt.Println(err1.Error())
+						return
+					}
+					// 刷入磁盘
+					if err1 = f.Sync(); err1 != nil {
+						fmt.Println("刷入磁盘失败，err：" + err1.Error())
 					}
 				}()
-				_, err1 = f.WriteString(string(str) + "\n") //写入文件(字符串)
-				if err1 != nil {
-					fmt.Println(err1.Error())
-					continue
-				}
-				// 刷入磁盘
-				if err1 = f.Sync(); err1 != nil {
-					fmt.Println("刷入磁盘失败，err：" + err1.Error())
-				}
 			}
 		}()
 	}
