@@ -252,3 +252,5 @@
 ##### feat: add logCenter
 # v1.1.1
 ##### feat: 配置的热更新新增.env类型文件
+# v1.1.3
+##### fix: 修复logCenter文件描述符无法释放导致内存泄漏问题
