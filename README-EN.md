@@ -270,3 +270,5 @@ Add("omer test1")
 ##### feat: support .env file by configController  
 # v1.1.3
 ##### fix: fix logCenter memory leak of fd
+# v1.1.4
+##### refactor: shield configuration check prompt

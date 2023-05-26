@@ -17,7 +17,7 @@ type (
 	clientStruct struct {
 		xmlConfig    map[string]string
 		jsonConfig   map[string]string
-		envConfig   map[string]string
+		envConfig    map[string]string
 		sync.RWMutex // 保证读取修改配置内存安全性
 	}
 
@@ -32,12 +32,12 @@ var (
 	pubPath                  = "./config" //默认配置文件目录
 	xmlConfig                = configStruct{name: "config.xml"}
 	jsonConfig               = configStruct{name: "config.json"}
-	envConfig               = configStruct{name: ".env"}
+	envConfig                = configStruct{name: ".env"}
 	l                        sync.Mutex
 	UpdatePubPathChan        = make(chan struct{}, 1)
 	UpdateXmlConfigNameChan  = make(chan struct{})
 	UpdateJsonConfigNameChan = make(chan struct{})
-	UpdateEnvConfigNameChan = make(chan struct{})
+	UpdateEnvConfigNameChan  = make(chan struct{})
 )
 
 // 初始化配置信息
@@ -112,7 +112,7 @@ func init() {
 		defer ticker.Stop()
 		for {
 			func() {
-				fmt.Println("定期配置更新检查....")
+				// fmt.Println("定期配置更新检查....")
 				<-ticker.C
 				l.Lock()
 				defer l.Unlock()
