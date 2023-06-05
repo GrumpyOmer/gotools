@@ -80,8 +80,8 @@
     "master": {
         "user": "x",
         "pass": "x",
-        "ip": 123,
-        "port": 456,
+        "ip": "127.0.0.1",
+        "port": "456",
         "db_name": "x",
         "max_igle_conn": 1, // Set the maximum number of connections in the free connection pool
         "max_open_conn": 1, // Set the maximum number of open database connections
@@ -91,8 +91,8 @@
         {
            "user": "x",
            "pass": "x",
-           "ip": 123,
-           "port": 456,
+           "ip": "127.0.0.1",
+           "port": "456",
            "db_name": "x",
            "max_igle_conn": 1, // Set the maximum number of connections in the free connection pool
            "max_open_conn": 1, // Set the maximum number of open database connections

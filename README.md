@@ -78,8 +78,8 @@
     "master": {
         "user": "x",
         "pass": "x",
-        "ip": 123,
-        "port": 456,
+        "ip": "127.0.0.1",
+        "port": "456",
         "db_name": "x",
         "max_igle_conn": 1, // 设置空闲连接池中连接的最大数量
         "max_open_conn": 1, // 设置打开数据库连接的最大数量
@@ -89,8 +89,8 @@
         {
            "user": "x",
            "pass": "x",
-           "ip": 123,
-           "port": 456,
+           "ip": "127.0.0.1",
+           "port": "456",
            "db_name": "x",
            "max_igle_conn": 1, // 设置空闲连接池中连接的最大数量
            "max_open_conn": 1, // 设置打开数据库连接的最大数量
