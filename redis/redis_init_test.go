@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestConfigInit(t *testing.T) {
+func TestRedisInit(t *testing.T) {
 	var (
 		err error
 	)

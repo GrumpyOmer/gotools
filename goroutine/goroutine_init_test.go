@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestConfigInit(t *testing.T) {
+func TestGoroutineInit(t *testing.T) {
 	var (
 		err1 error
 		err2 error

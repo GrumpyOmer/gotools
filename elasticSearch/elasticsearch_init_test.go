@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestConfigInit(t *testing.T) {
+func TestElasticsearchInit(t *testing.T) {
 	var (
 		err error
 		ctx = context.Background()

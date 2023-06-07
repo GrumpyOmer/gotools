@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestConfigInit(t *testing.T) {
+func TestMysqlInit(t *testing.T) {
 	var (
 		err error
 	)
@@ -35,11 +35,11 @@ func TestConfigInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_,err =Client().GetMaster()
+	_, err = Client().GetMaster()
 	if err != nil {
 		t.Fatal(err)
 	}
-	_,err =Client().GetSlave()
+	_, err = Client().GetSlave()
 	if err != nil {
 		t.Fatal(err)
 	}
