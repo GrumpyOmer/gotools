@@ -31,7 +31,7 @@ type (
 		User    string `json:"user"` // redis 6.0支持用户名登录 兼容一下
 		Pass    string `json:"pass"`
 		Db      int    `json:"db"`
-		Network string `json:"network`
+		Network string `json:"network"`
 		poolConfig
 	}
 	config struct {
