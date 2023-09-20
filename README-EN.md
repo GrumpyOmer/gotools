@@ -272,3 +272,5 @@ Add("omer test1")
 ##### fix: fix logCenter memory leak of fd
 # v1.1.4
 ##### refactor: shield configuration check prompt
+# v1.1.5
+##### fix: fix analysis of param for redis config
