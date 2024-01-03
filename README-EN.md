@@ -261,6 +261,13 @@ It is very simple to use, just need to call Add(string) function to pass the log
 Add("omer test1")
 
 ```
+By default, each log is forcibly written to the disk, sacrificing some disk performance to prevent log loss. You can also manually turn off the forced disk flushing and hand over the disk loading time to the file system
+
+```
+
+    SaveFSync(true) //关闭强制刷盘
+    
+```
 # tag update record
 # v1.0.1
 ##### feat: feature release
