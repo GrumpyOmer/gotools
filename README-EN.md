@@ -274,3 +274,5 @@ Add("omer test1")
 ##### refactor: shield configuration check prompt
 # v1.1.5
 ##### fix: fix analysis of param for redis config
+# v1.1.6
+##### feat: add switch of file sync

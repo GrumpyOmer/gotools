@@ -6,6 +6,7 @@ import (
 )
 
 func TestLogcenterInit(t *testing.T) {
+	//SaveFSync(true)
 	Add("omer test1")
 	time.Sleep(2 * time.Second)
 }

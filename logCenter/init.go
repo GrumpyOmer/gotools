@@ -24,6 +24,8 @@ type (
 var (
 	// 默认10W记录缓存
 	channel = make(chan stackInfo, 100000)
+	// 是否将日志强制写入磁盘，默认不强制
+	fSync bool
 )
 
 func init() {
@@ -64,9 +66,12 @@ func init() {
 						fmt.Println(err1.Error())
 						return
 					}
-					// 刷入磁盘
-					if err1 = f.Sync(); err1 != nil {
-						fmt.Println("刷入磁盘失败，err：" + err1.Error())
+					if fSync {
+						// 刷入磁盘
+						if err1 = f.Sync(); err1 != nil {
+							fmt.Println("刷入磁盘失败，err：" + err1.Error())
+						}
+						//fmt.Println("刷入磁盘")
 					}
 				}()
 			}
@@ -85,4 +90,8 @@ func Add(content string) {
 		LogTime:      time.Now().String(),
 	}
 	channel <- info
+}
+
+func SaveFSync(o bool) {
+	fSync = o
 }
