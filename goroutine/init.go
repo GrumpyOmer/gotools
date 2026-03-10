@@ -45,7 +45,7 @@ func init() {
 					w.Done()
 					if err := recover(); err != nil {
 						// 记录任务错误 防止进程重启 「可在此接入错误上报 待实现」
-						fmt.Printf("recover(): %v\n", recover())
+						fmt.Printf("recover(): %v\n", err)
 					}
 				}()
 				// running task

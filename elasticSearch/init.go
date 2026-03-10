@@ -2,14 +2,14 @@ package elasticSearch
 
 import (
 	"encoding/json"
-	"github.com/olivere/elastic/v7"
-	"github.com/pkg/errors"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/olivere/elastic/v7"
 )
 
 type (
@@ -17,8 +17,9 @@ type (
 		Address []string `json:"address"`
 	}
 	client struct {
-		es *elastic.Client
-		sync.Once
+		es   *elastic.Client
+		mu   sync.Mutex
+		done bool
 	}
 )
 
@@ -42,21 +43,24 @@ func ConfigInit(c []byte) error {
 
 // GetESClient 获取客户端实例
 func GetESClient() (*elastic.Client, error) {
+	esClient.mu.Lock()
+	defer esClient.mu.Unlock()
+
+	// 如果已经初始化成功，直接返回
+	if esClient.es != nil {
+		return esClient.es, nil
+	}
+
+	// 初始化客户端
 	var err error
-
-	// init
-	esClient.Do(func() {
-		esClient.es, err = initClient()
-	})
-
+	esClient.es, err = initClient()
 	if err != nil {
+		// 初始化失败，重置状态以便下次重试
+		esClient.es = nil
 		return nil, err
 	}
 
-	if esClient.es == nil {
-		return nil, errors.New("无可用es实例!!")
-	}
-
+	esClient.done = true
 	return esClient.es, nil
 }
 

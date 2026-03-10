@@ -27,7 +27,12 @@ func NewWc() *writeCounter {
 func (wc *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	atomic.AddUint64(&wc.current, uint64(n))
-	atomic.CompareAndSwapInt32(&wc.progress, wc.progress, int32(float64(atomic.LoadUint64(&wc.current))/float64(wc.total)*100))
+	// 计算进度百分比并原子更新
+	total := atomic.LoadUint64(&wc.total)
+	if total > 0 {
+		newProgress := int32(float64(atomic.LoadUint64(&wc.current)) / float64(total) * 100)
+		atomic.StoreInt32(&wc.progress, newProgress)
+	}
 	return n, nil
 }
 
@@ -65,16 +70,12 @@ func (wc *writeCounter) DownloadFile(filepath string, url string) error {
 	}
 	// 开始占用wc
 	wc.initProperty()
-	go func(string, string) {
-		var (
-			err         error
-			DownloadMap sync.Map
-		)
+	go func(filepath string, url string) {
+		var err error
 		defer func() {
 			wc.err = err
 			wc.inUse = false
 		}()
-		DownloadMap.Store(filepath, wc)
 
 		out, err := os.Create(filepath + ".tmp")
 		if err != nil {

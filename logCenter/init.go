@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -25,7 +26,8 @@ var (
 	// 默认10W记录缓存
 	channel = make(chan stackInfo, 100000)
 	// 是否将日志强制写入磁盘，默认不强制
-	fSync bool
+	fSync         bool
+	fSyncRWMutex  sync.RWMutex
 )
 
 func init() {
@@ -66,7 +68,10 @@ func init() {
 						fmt.Println(err1.Error())
 						return
 					}
-					if fSync {
+					fSyncRWMutex.RLock()
+					shouldSync := fSync
+					fSyncRWMutex.RUnlock()
+					if shouldSync {
 						// 刷入磁盘
 						if err1 = f.Sync(); err1 != nil {
 							fmt.Println("刷入磁盘失败，err：" + err1.Error())
@@ -93,5 +98,7 @@ func Add(content string) {
 }
 
 func SaveFSync(o bool) {
+	fSyncRWMutex.Lock()
 	fSync = o
+	fSyncRWMutex.Unlock()
 }

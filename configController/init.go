@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/sbabiv/xml2map"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/sbabiv/xml2map"
 )
 
 type (
@@ -210,7 +210,7 @@ func Exists(path string) bool {
 func (c *clientStruct) initXmlConfig(path string) error {
 	c.Lock()
 	defer c.Unlock()
-	buf, err := ioutil.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return errors.New("load xml conf failed: " + err.Error())
 	}
@@ -219,11 +219,18 @@ func (c *clientStruct) initXmlConfig(path string) error {
 	if err != nil {
 		return err
 	}
-	tmp := res["root"].(map[string]interface{})
+	tmp, ok := res["root"].(map[string]interface{})
+	if !ok {
+		return errors.New("xml config: invalid root element type")
+	}
 	//init map
 	c.xmlConfig = make(map[string]string)
 	for k, v := range tmp {
-		c.xmlConfig[k] = v.(string)
+		if strVal, ok := v.(string); ok {
+			c.xmlConfig[k] = strVal
+		} else {
+			c.xmlConfig[k] = fmt.Sprintf("%v", v)
+		}
 	}
 	return nil
 }
@@ -237,7 +244,7 @@ func GetXmlField(field string) string {
 func (c *clientStruct) initJsonConfig(path string) error {
 	c.Lock()
 	defer c.Unlock()
-	buf, err := ioutil.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return errors.New("load json conf failed: " + err.Error())
 	}

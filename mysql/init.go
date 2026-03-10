@@ -101,9 +101,7 @@ func (c *client) GetSlave() (*gorm.DB, error) {
 	}
 
 	if len(c.Slave) != 0 {
-		// 随机选择一个从库
-		// seed函数是用来创建随机数的种子,如果不执行该步骤创建的随机数是一样的，因为默认Go会使用一个固定常量值来作为随机种子。
-		rand.Seed(time.Now().UnixNano())
+		// 随机选择一个从库 (Go 1.20+ rand.Seed已废弃，直接使用rand.Intn即可)
 		return c.Slave[rand.Intn(len(c.Slave))], nil
 	}
 

@@ -99,9 +99,7 @@ func (c *client) GetSlave() (redis.Conn, error) {
 	})
 
 	if len(c.Slave) != 0 {
-		// 随机选择一个从库的连接
-		// seed函数是用来创建随机数的种子,如果不执行该步骤创建的随机数是一样的，因为默认Go会使用一个固定常量值来作为随机种子。
-		rand.Seed(time.Now().UnixNano())
+		// 随机选择一个从库的连接 (Go 1.20+ rand.Seed已废弃，直接使用rand.Intn即可)
 		conn = c.Slave[rand.Intn(len(c.Slave))].Get()
 		if conn.Err() != nil {
 			return nil, conn.Err()
@@ -109,7 +107,7 @@ func (c *client) GetSlave() (redis.Conn, error) {
 		return conn, nil
 	}
 
-	return conn, errors.New("无可用从库!!")
+	return nil, errors.New("无可用从库!!")
 }
 
 // 初始化连接池
