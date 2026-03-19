@@ -283,3 +283,5 @@ By default, each log is forcibly written to the disk, sacrificing some disk perf
 ##### fix: fix analysis of param for redis config
 # v1.1.6
 ##### feat: add switch of file sync
+# v1.1.7
+##### feat: optimized logCenter
