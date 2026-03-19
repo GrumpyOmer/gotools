@@ -16,16 +16,15 @@ type (
 	config struct {
 		Address []string `json:"address"`
 	}
-	client struct {
-		es   *elastic.Client
-		mu   sync.Mutex
-		done bool
-	}
 )
 
 var (
 	// 实例对象
-	esClient = client{}
+	esClient *elastic.Client
+	// 初始化锁
+	esOnce sync.Once
+	// 初始化错误（只记录首次错误）
+	esInitErr error
 	// 配置对象
 	cf = config{}
 )
@@ -41,27 +40,20 @@ func ConfigInit(c []byte) error {
 	return nil
 }
 
-// GetESClient 获取客户端实例
+// GetESClient 获取客户端实例（并发安全）
 func GetESClient() (*elastic.Client, error) {
-	esClient.mu.Lock()
-	defer esClient.mu.Unlock()
+	var initErr error
+	esOnce.Do(func() {
+		esClient, initErr = initClient()
+		if initErr != nil {
+			esInitErr = initErr
+		}
+	})
 
-	// 如果已经初始化成功，直接返回
-	if esClient.es != nil {
-		return esClient.es, nil
+	if esInitErr != nil {
+		return nil, esInitErr
 	}
-
-	// 初始化客户端
-	var err error
-	esClient.es, err = initClient()
-	if err != nil {
-		// 初始化失败，重置状态以便下次重试
-		esClient.es = nil
-		return nil, err
-	}
-
-	esClient.done = true
-	return esClient.es, nil
+	return esClient, nil
 }
 
 // 初始化实例
