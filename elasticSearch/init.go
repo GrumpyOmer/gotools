@@ -21,43 +21,58 @@ type (
 var (
 	// 实例对象
 	esClient *elastic.Client
-	// 初始化锁
-	esOnce sync.Once
-	// 初始化错误（只记录首次错误）
-	esInitErr error
+	esMu     sync.Mutex
 	// 配置对象
-	cf = config{}
+	cf                = config{}
+	httpClientFactory = defaultHTTPClient
 )
 
 // ConfigInit es配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
-	err := json.Unmarshal(c, &cf)
+	var next config
+	err := json.Unmarshal(c, &next)
 	if err != nil {
 		// 初始化失败
 		return err
 	}
+	esMu.Lock()
+	cf = next
+	esClient = nil
+	esMu.Unlock()
 	return nil
 }
 
 // GetESClient 获取客户端实例（并发安全）
 func GetESClient() (*elastic.Client, error) {
-	var initErr error
-	esOnce.Do(func() {
-		esClient, initErr = initClient()
-		if initErr != nil {
-			esInitErr = initErr
-		}
-	})
-
-	if esInitErr != nil {
-		return nil, esInitErr
+	esMu.Lock()
+	defer esMu.Unlock()
+	if esClient != nil {
+		return esClient, nil
 	}
+	client, err := initClient()
+	if err != nil {
+		return nil, err
+	}
+	esClient = client
 	return esClient, nil
 }
 
 // 初始化实例
 func initClient() (*elastic.Client, error) {
+	httpClient := httpClientFactory()
+	return elastic.NewClient(
+		elastic.SetHttpClient(httpClient),
+		elastic.SetURL(cf.Address...),
+		elastic.SetSniff(false),
+		elastic.SetHealthcheckInterval(10*time.Second),
+		elastic.SetGzip(false),
+		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
+		elastic.SetTraceLog(log.New(os.Stdout, "ELASTIC ", log.LstdFlags)),
+		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+}
+
+func defaultHTTPClient() *http.Client {
 	httpClient := &http.Client{}
 	httpClient.Transport = &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -71,13 +86,5 @@ func initClient() (*elastic.Client, error) {
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
-	return elastic.NewClient(
-		elastic.SetHttpClient(httpClient),
-		elastic.SetURL(cf.Address...),
-		elastic.SetSniff(false),
-		elastic.SetHealthcheckInterval(10*time.Second),
-		elastic.SetGzip(false),
-		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
-		elastic.SetTraceLog(log.New(os.Stdout, "ELASTIC ", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+	return httpClient
 }

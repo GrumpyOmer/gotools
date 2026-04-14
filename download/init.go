@@ -2,6 +2,7 @@ package download
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -19,6 +20,8 @@ type writeCounter struct {
 	inUse    bool   //是否被使用
 	sync.Mutex
 }
+
+var httpGet = http.Get
 
 func NewWc() *writeCounter {
 	return &writeCounter{}
@@ -72,30 +75,36 @@ func (wc *writeCounter) DownloadFile(filepath string, url string) error {
 	wc.initProperty()
 	go func(filepath string, url string) {
 		var err error
+		tmpPath := filepath + ".tmp"
 		defer func() {
 			wc.err = err
 			wc.inUse = false
+			if err != nil {
+				_ = os.Remove(tmpPath)
+			}
 		}()
 
-		out, err := os.Create(filepath + ".tmp")
+		out, err := os.Create(tmpPath)
 		if err != nil {
 			return
 		}
-		resp, err := http.Get(url)
+		defer out.Close()
+		resp, err := httpGet(url)
 		if err != nil {
-			out.Close()
 			return
 		}
 		defer resp.Body.Close()
-		tmpTotal, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
-		// 获取文件大小
-		wc.total = uint64(tmpTotal)
-		if _, err = io.Copy(out, io.TeeReader(resp.Body, wc)); err != nil {
-			out.Close()
+		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+			err = fmt.Errorf("download failed: %s", resp.Status)
 			return
 		}
-		out.Close()
-		if err = os.Rename(filepath+".tmp", filepath); err == nil {
+		tmpTotal, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
+		// 获取文件大小
+		atomic.StoreUint64(&wc.total, uint64(tmpTotal))
+		if _, err = io.Copy(out, io.TeeReader(resp.Body, wc)); err != nil {
+			return
+		}
+		if err = os.Rename(tmpPath, filepath); err == nil {
 			wc.success = true
 		}
 		return

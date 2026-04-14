@@ -14,10 +14,11 @@ type (
 	}
 	goroutineManager struct {
 		sync.Mutex
-		max       uint64           // 最大协程数
-		current   uint64           // 当前正在运行的协程
-		queue     chan queueStruct // 执行的任务
-		waitQueue chan queueStruct // 等待执行的任务
+		max        uint64           // 最大协程数
+		current    uint64           // 当前正在运行的协程
+		queue      chan queueStruct // 执行的任务
+		waitQueue  chan queueStruct // 等待执行的任务
+		dispatchCh chan struct{}    // 唤醒调度器，避免空转
 	}
 )
 
@@ -31,6 +32,7 @@ func init() {
 	manager.queue = make(chan queueStruct, 1000)
 	// 初始化待消费通道 默认缓冲100000
 	manager.waitQueue = make(chan queueStruct, 100000)
+	manager.dispatchCh = make(chan struct{}, 1)
 	// 初始化任务消费者
 	go func() {
 		for v := range manager.queue {
@@ -43,6 +45,7 @@ func init() {
 					atomic.AddUint64(&manager.current, dec)
 					// 等待组处理
 					w.Done()
+					manager.notifyDispatcher()
 					if err := recover(); err != nil {
 						// 记录任务错误 防止进程重启 「可在此接入错误上报 待实现」
 						fmt.Printf("recover(): %v\n", err)
@@ -57,6 +60,7 @@ func init() {
 	// 初始化待执行任务消费者
 	go func() {
 		for {
+			<-manager.dispatchCh
 			current := atomic.LoadUint64(&manager.current)
 			// 利用cas保证协程数量在控制范围内
 			if len(manager.waitQueue) > 0 &&
@@ -64,6 +68,7 @@ func init() {
 				atomic.CompareAndSwapUint64(&manager.current, current, current+1) {
 				currentTask := <-manager.waitQueue
 				manager.queue <- currentTask
+				manager.notifyDispatcher()
 			}
 		}
 	}()
@@ -96,6 +101,7 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 			function:  task,
 			waitGroup: w,
 		}
+		manager.notifyDispatcher()
 		return nil
 	}
 	// 更新当前协程数信息 原子操作保证一致性
@@ -105,6 +111,7 @@ func MakeTask(task func(), w *sync.WaitGroup) error {
 		function:  task,
 		waitGroup: w,
 	}
+	manager.notifyDispatcher()
 	return nil
 }
 
@@ -122,6 +129,7 @@ func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 				function:  v,
 				waitGroup: w,
 			}
+			manager.notifyDispatcher()
 			continue
 		}
 		// 更新当前协程数信息 原子操作保证一致性
@@ -131,6 +139,7 @@ func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 			function:  v,
 			waitGroup: w,
 		}
+		manager.notifyDispatcher()
 	}
 
 	return nil
@@ -139,4 +148,11 @@ func BatchMakeTask(tasks []func(), w *sync.WaitGroup) error {
 // SearchCurTask 查看当前堆积任务
 func SearchCurTask() int {
 	return len(manager.queue)
+}
+
+func (g *goroutineManager) notifyDispatcher() {
+	select {
+	case g.dispatchCh <- struct{}{}:
+	default:
+	}
 }

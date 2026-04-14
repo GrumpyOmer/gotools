@@ -14,8 +14,7 @@ type (
 	client struct {
 		Master *redis.Pool
 		Slave  []*redis.Pool //支持多从库
-		m      sync.Once     //初始化master配置
-		s      sync.Once     //初始化slave配置
+		mu     sync.Mutex
 	}
 	// 连接池配置
 	poolConfig struct {
@@ -48,11 +47,14 @@ var (
 // ConfigInit redis配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
-	err := json.Unmarshal(c, &cf)
+	var next config
+	err := json.Unmarshal(c, &next)
 	if err != nil {
 		// 初始化失败
 		return err
 	}
+	cf = next
+	redisClient.reset()
 	return nil
 }
 
@@ -63,17 +65,14 @@ func Client() *client {
 
 // GetMaster 获取redis连接 / master
 func (c *client) GetMaster() (redis.Conn, error) {
-	var (
-		conn redis.Conn
-	)
-
-	// init
-	c.m.Do(func() {
-		// get config init master connPool
+	c.mu.Lock()
+	if c.Master == nil {
 		c.Master = initPool(cf.Master)
-	})
+	}
+	pool := c.Master
+	c.mu.Unlock()
 
-	conn = c.Master.Get()
+	conn := pool.Get()
 	if conn.Err() != nil {
 		// 连接不可用
 		return nil, conn.Err()
@@ -84,23 +83,18 @@ func (c *client) GetMaster() (redis.Conn, error) {
 
 // GetSlave 获取redis连接 / slave
 func (c *client) GetSlave() (redis.Conn, error) {
-	var (
-		conn redis.Conn
-	)
-
-	//init
-	c.s.Do(func() {
-		// get config init connection
-		if len(cf.Slave) != 0 {
-			for _, v := range cf.Slave {
-				c.Slave = append(c.Slave, initPool(v))
-			}
+	c.mu.Lock()
+	if len(c.Slave) == 0 && len(cf.Slave) != 0 {
+		for _, v := range cf.Slave {
+			c.Slave = append(c.Slave, initPool(v))
 		}
-	})
+	}
+	slaves := c.Slave
+	c.mu.Unlock()
 
-	if len(c.Slave) != 0 {
+	if len(slaves) != 0 {
 		// 随机选择一个从库的连接 (Go 1.20+ rand.Seed已废弃，直接使用rand.Intn即可)
-		conn = c.Slave[rand.Intn(len(c.Slave))].Get()
+		conn := slaves[rand.Intn(len(slaves))].Get()
 		if conn.Err() != nil {
 			return nil, conn.Err()
 		}
@@ -108,6 +102,21 @@ func (c *client) GetSlave() (redis.Conn, error) {
 	}
 
 	return nil, errors.New("无可用从库!!")
+}
+
+func (c *client) reset() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.Master != nil {
+		_ = c.Master.Close()
+		c.Master = nil
+	}
+	for _, slave := range c.Slave {
+		if slave != nil {
+			_ = slave.Close()
+		}
+	}
+	c.Slave = nil
 }
 
 // 初始化连接池

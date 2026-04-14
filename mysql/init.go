@@ -16,8 +16,7 @@ type (
 	client struct {
 		Master *gorm.DB
 		Slave  []*gorm.DB //支持多从库
-		m      sync.Once  //初始化master配置
-		s      sync.Once  //初始化slave配置
+		mu     sync.Mutex
 	}
 	// 连接池相关配置
 	connPool struct {
@@ -51,77 +50,85 @@ var (
 
 // GetMaster 主库对象
 func (c *client) GetMaster() (*gorm.DB, error) {
-	var (
-		err error
-	)
-
-	// init once
-	c.m.Do(func() {
-		// get config init connection
-		if db, error := initDB(cf.Master); error != nil {
-			err = error
-		} else {
-			c.Master = db
-		}
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.Master != nil {
 		return c.Master, nil
 	}
-
-	return nil, errors.New("无可用主库!!")
+	db, err := initDB(cf.Master)
+	if err != nil {
+		return nil, err
+	}
+	c.Master = db
+	return c.Master, nil
 }
 
 // GetSlave 从库对象
 func (c *client) GetSlave() (*gorm.DB, error) {
-	var (
-		err error
-	)
-
-	// init once
-	c.s.Do(func() {
-		// get config init connection
-		if len(cf.Slave) != 0 {
-			for _, v := range cf.Slave {
-				if db, error := initDB(v); error != nil {
-					err = error
-				} else {
-					c.Slave = append(c.Slave, db)
-				}
-			}
-		}
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if len(c.Slave) != 0 {
 		// 随机选择一个从库 (Go 1.20+ rand.Seed已废弃，直接使用rand.Intn即可)
 		return c.Slave[rand.Intn(len(c.Slave))], nil
 	}
-
+	if len(cf.Slave) == 0 {
+		return nil, errors.New("无可用从库!!")
+	}
+	var lastErr error
+	for _, v := range cf.Slave {
+		db, err := initDB(v)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		c.Slave = append(c.Slave, db)
+	}
+	if len(c.Slave) != 0 {
+		return c.Slave[rand.Intn(len(c.Slave))], nil
+	}
+	if lastErr != nil {
+		return nil, lastErr
+	}
 	return nil, errors.New("无可用从库!!")
 }
 
 // ConfigInit 数据库配置信息初始化
 func ConfigInit(c []byte) error {
 	// 外部传入json字符串配置
-	err := json.Unmarshal(c, &cf)
+	var next config
+	err := json.Unmarshal(c, &next)
 	if err != nil {
 		// 初始化失败
 		return err
 	}
+	cf = next
+	dbClient.reset()
 	return nil
 }
 
 // Client 获取数据库连接实例
 func Client() *client {
 	return &dbClient
+}
+
+func (c *client) reset() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.Master != nil {
+		if sqldb, err := c.Master.DB(); err == nil {
+			_ = sqldb.Close()
+		}
+		c.Master = nil
+	}
+	for _, slave := range c.Slave {
+		if slave == nil {
+			continue
+		}
+		if sqldb, err := slave.DB(); err == nil {
+			_ = sqldb.Close()
+		}
+	}
+	c.Slave = nil
 }
 
 // init db
